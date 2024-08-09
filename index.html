@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>WALLS 95</title>
+		<style>
+            @import url("https://unpkg.com/fixedsys-css/css/fixedsys.css");
+			body {
+                background: #000;
+                margin: 0;
+                overflow: hidden;
+                font-family: "fixedsys";
+                color: #fff;
+            }
+            canvas {
+                background: #999;
+                image-rendering: pixelated;
+                position: fixed;
+                top: 50vh;
+                left: 50vw;
+                transform: translate(-50%, -50%)
+            }
+            .viewmodel {
+                height: 100vh;
+                width: 100vh;
+                image-rendering: pixelated;
+                position: fixed;
+                top: 0vh;
+                left: 50vw;
+                z-index: 100;
+                animation: bob 2s infinite;
+                pointer-events: none;
+            }
+            .viewmodel-orb {
+                height: 25vh;
+                width: 25vh;
+                image-rendering: pixelated;
+                position: fixed;
+                top: 50vh;
+                left: 50vw;
+                transform: translateX(-60vh);
+                z-index: 101;
+                animation: bob-orb 2s infinite;
+                pointer-events: none;
+            }
+            @keyframes bob {
+                0%, 100% {
+                    top: 0vh;
+                }
+                50% {
+                    top: 2vh;
+                }
+            }
+            @keyframes bob-orb {
+                0%, 100% {
+                    top: 50vh;
+                }
+                50% {
+                    top: 51vh;
+                }
+            }
+            #dataviewer {
+                background: #000;
+                border: 5px outset #e38400;
+                color: #fff;
+                position: fixed;
+                top: 80px;
+                left: 80px;
+                width: 300px;
+                height: fit-content;
+                padding: 10px;
+                z-index: 10;
+                box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+            }
+            #secret {
+                position: fixed;
+                top: 20vh;
+                left: 50vw;
+                transform: translateX(-50%);
+                z-index: 200;
+                text-decoration: wavy underline;
+
+                animation: secret-effect 1.5s infinite;
+                text-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+            }
+            @keyframes secret-effect {
+                0%, 100% {
+                    color: #ffa11d;
+                }
+                33% {
+                    color: #ff00c8;
+                }
+                66% {
+                    color: #7eb82c;
+                }
+            }
+            .danger {
+                color: #ff5454;
+            }
+            .ugly {
+                font-family: "Comic Sans MS", "Comic Sans", cursive;
+            }
+            #ice-cream { color: #ff00c8; }
+            #document { color: #7eb82c; }
+		</style>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@v0.159.0/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@v0.159.0/examples/jsm/"
+                }
+            }
+        </script>
+        <script type="module" src="index.js"></script>
+	</head>
+	<body>
+        <!--  onerror="alert(event)" -->
+        <img src="textures/left_hand.png" class="viewmodel" style="transform: translateX(-75vh) !important;">
+        <img src="textures/right_hand.png" class="viewmodel" style="transform: translateX(-25vh) !important;">
+        <img src="textures/eyespy.gif" class="viewmodel-orb">
+
+        <div id="dataviewer">
+            <span class="danger" style="font-size: 1.3em;">DATAVIEWER v1.0</span>
+            <p id="user-data"></p>
+        </div>
+        <h1 id="secret" style="display: none;"><span class="ugly">You found a</span> SECRET</h1>
+	</body>
+</html>

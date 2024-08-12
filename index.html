@@ -102,12 +102,30 @@
             }
             #ice-cream { color: #ff00c8; }
             #document { color: #7eb82c; }
+
+            @keyframes move-background {
+                0% {
+                    background-position: 0 0;
+                }
+                100% {
+                    background-position: 0 50px;
+                }
+            }
+            #scanline-overlay {
+                background: repeating-linear-gradient(transparent, transparent 30px, rgba(0, 0, 0, 0.05) 30px, rgba(0, 0, 0, 0.05) 50px);
+                position: fixed;
+                width: 100vw;
+                height: 100vh;
+                pointer-events: none;
+                animation: move-background 1.2s linear infinite;
+                z-index: 1000;
+            }
 		</style>
         <script type="importmap">
             {
                 "imports": {
-                    "three": "https://unpkg.com/three@v0.159.0/build/three.module.js",
-                    "three/addons/": "https://unpkg.com/three@v0.159.0/examples/jsm/"
+                    "three": "https://unpkg.com/three@v0.167.1/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@v0.167.1/examples/jsm/"
                 }
             }
         </script>
@@ -124,5 +142,9 @@
             <p id="user-data"></p>
         </div>
         <h1 id="secret" style="display: none;"><span class="ugly">You found a</span> SECRET</h1>
+
+        <div id="scanline-overlay">
+            too lazy to add enemies lol
+        </div>
 	</body>
 </html>

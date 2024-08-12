@@ -3,11 +3,18 @@ import * as util from './util.mjs';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { Level } from './levels.mjs';
 
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
+
 const renderer = new THREE.WebGLRenderer();
-renderer.setPixelRatio(0.7);
+renderer.setPixelRatio(1.5);
 renderer.setSize(window.innerWidth - 120, window.innerHeight - 120);
 // renderer.sortObjects = true;
 document.body.appendChild(renderer.domElement);
+
 
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.07);
@@ -16,6 +23,14 @@ let camera = undefined;
 let player = undefined;
 let playerVelocity = 0;
 let locked = false;
+
+// POST PROCESSING
+
+// const composer = new EffectComposer(renderer);
+// composer.addPass(new RenderPass(scene, camera));
+// // const glitchPass = new GlitchPass(); composer.addPass(glitchPass);
+// // composer.addPass(new SMAAPass(window.innerWidth, window.innerHeight));
+// composer.addPass(new FilmPass(0.3));
 
 // GUI STUFF
 
@@ -72,13 +87,13 @@ function setupScene() {
     // ======================================
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
         map: util.loadTexture("floor.png", 500, 500)
-    }));
+    })); ground.name = "GROUND";
     scene.add(ground);
     ground.rotation.x = -Math.PI / 2;
 
     // ======================================
     console.log(main);
-    level = new Level(main, player);
+    level = new Level(main, player); level.name = "LEVEL";
     scene.add(level);
 }
 var pressedKeys = {};
@@ -147,7 +162,9 @@ function update() {
     // update stuff
     updatePlayer(delta);
     level.update(delta);
+    camera.updateProjectionMatrix();
     renderer.render(scene, camera);
+    // composer.render();
 }
 
 let main = {

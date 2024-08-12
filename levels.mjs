@@ -7,7 +7,7 @@ const TILE_SIZE = 4;
 function Level(main, player, filePath = "testing.w95") {
 
     let tilePalette = {
-        "t": () => { return new tiles.WallBlock(this, util.loadTexture("tutorialbob.png")); },
+        "t": () => { return new tiles.WallBlock(util.loadTexture("tutorialbob.png")); },
     
         "W": () => { return new tiles.WallBlock(util.loadTexture("default.png", 4, 4)); },
         "P": () => { return new tiles.WallBlock(util.loadTexture("paintingwall.png")); },

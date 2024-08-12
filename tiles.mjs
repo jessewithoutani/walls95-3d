@@ -44,8 +44,9 @@ function WallBlock(texture) {
     }
 
     function awake() {
-        object.add(new THREE.Mesh(new THREE.BoxGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), new THREE.MeshPhongMaterial({
-            map: texture})));
+        object.add(
+            new THREE.Mesh(new THREE.BoxGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
+            new THREE.MeshPhongMaterial({ map: texture })));
     }
 
     object.colliding = colliding;

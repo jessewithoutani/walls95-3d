@@ -17,7 +17,8 @@ document.body.appendChild(renderer.domElement);
 
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x000000, 0.07);
+scene.fog = new THREE.FogExp2(0x86bde3, 0.05);
+scene.background = new THREE.Color(0x86bde3);
 let camera = undefined;
 
 let player = undefined;
@@ -44,15 +45,26 @@ function secretFound() {
 
 // OTEHR STUFF IDK
 
-
+function setupSky() {
+    const skyGeometry = new THREE.SphereGeometry(1000);
+    const skyMaterial = new THREE.MeshBasicMaterial({
+        map: util.loadTexture("sky.png"),
+        side: THREE.BackSide,
+        fog: false
+    })
+    const skyMesh = new THREE.Mesh(skyGeometry, skyMaterial);
+    scene.add(skyMesh);
+    skyMesh.position.set(0, 0, 0);
+}
 function setupCamera() {
     camera = new THREE.PerspectiveCamera(75, 
         (window.innerWidth - 120) / (window.innerHeight - 120), 
-        0.1, 1000);
+        0.1, 7500);
     camera.rotation.order = 'YXZ';
 }
 function setupPlayer() {
     setupCamera();
+    setupSky();
     player = new THREE.Object3D();
     player.position.set(0, 0, 0);
     scene.add(player);
@@ -78,10 +90,10 @@ function setupPlayer() {
 }
 let level = undefined;
 function setupScene() {
-    const directional = new THREE.DirectionalLight(0xffffff, 2.5);
+    const directional = new THREE.DirectionalLight(0xfff2b3, 2.5);
     directional.position.set(0.5, 1, 0.1);
     scene.add(directional);
-    const ambient = new THREE.AmbientLight(0x888899, 2);
+    const ambient = new THREE.AmbientLight(0x777ca1, 2);
     scene.add(ambient);
 
     // ======================================

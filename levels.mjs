@@ -4,7 +4,7 @@ import * as tiles from './tiles.mjs';
 
 const TILE_SIZE = 4;
 
-function Level(main, player, filePath = "testing.w95") {
+export function Level(main, player, filePath = "testing.w95") {
 
     let tilePalette = {
         "t": () => { return new tiles.WallBlock(util.loadTexture("tutorialbob.png")); },
@@ -96,8 +96,4 @@ function Level(main, player, filePath = "testing.w95") {
         checkIntersection, checkTriggerIntersection, update
     })
     return object;
-}
-
-export {
-    Level
 }

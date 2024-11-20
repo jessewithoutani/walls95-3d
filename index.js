@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as util from './util.mjs';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { Level } from './levels.mjs';
+import { Projectile } from './projectile.mjs';
 
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -24,6 +25,8 @@ let camera = undefined;
 let player = undefined;
 let playerVelocity = 0;
 let locked = false;
+
+let theta = 0;
 
 // POST PROCESSING
 
@@ -89,6 +92,8 @@ function setupPlayer() {
     player.name = "PLAYER";
 }
 let level = undefined;
+let projectiles = [];
+
 function setupScene() {
     const directional = new THREE.DirectionalLight(0xfff2b3, 2.5);
     directional.position.set(0.5, 1, 0.1);
@@ -128,7 +133,7 @@ function updatePlayer(delta) {
     if (pressedKeys.a || pressedKeys.A) strafeMovement--;
     if (pressedKeys.d || pressedKeys.D) strafeMovement++;
 
-    const theta = camera.rotation.y;
+    theta = camera.rotation.y;
     const walkVector = new THREE.Vector3(
         Math.sin(theta), 0, Math.cos(theta)); walkVector.multiplyScalar(WALK_SPEED * delta * -walkMovement);
     const strafeVector = new THREE.Vector3(
@@ -156,6 +161,22 @@ function updatePlayer(delta) {
 const clock = new THREE.Clock();
 let timeElapsed = 0;
 // update() runs every frame
+function updateProjectiles(delta, theta) {
+    if (pressedKeys.e) {
+        const newProjectile = new Projectile(level, theta);
+        newProjectile.position.copy(player.position);
+        projectiles.push(newProjectile);
+        scene.add(newProjectile);
+    }
+    // if (projectiles.length > 0 && projectiles[0].awaitingDeletion()) {
+    //     scene.remove(projectiles[0]);
+    //     projectiles.shift();
+    // }
+    projectiles.forEach(projectile => {
+        projectile.update(delta);
+        console.log(projectile.position)
+    });
+}
 function update() {
     requestAnimationFrame(update);
     if (!level || !level.finished) {
@@ -174,6 +195,7 @@ function update() {
     // update stuff
     updatePlayer(delta);
     level.update(delta);
+    updateProjectiles(delta, theta);
     camera.updateProjectionMatrix();
     renderer.render(scene, camera);
     // composer.render();

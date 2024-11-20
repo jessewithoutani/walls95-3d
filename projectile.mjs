@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import * as util from './util.mjs';
 
-export function Projectile(level, theta, speed = 5) {
-    const object = new THREE.Mesh(new THREE.SphereGeometry, new THREE.MeshNormalMaterial);
+export function Projectile(level, theta, speed = 15) {
+    const object = new THREE.Mesh(new THREE.SphereGeometry(0.1, 4, 4), new THREE.MeshNormalMaterial);
     const spawnTime = Date.now();
 
     function awake() {}

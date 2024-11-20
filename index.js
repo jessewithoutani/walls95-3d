@@ -165,6 +165,7 @@ function updateProjectiles(delta, theta) {
     if (pressedKeys.e) {
         const newProjectile = new Projectile(level, theta);
         newProjectile.position.copy(player.position);
+        newProjectile.position.y = 1.8;
         projectiles.push(newProjectile);
         scene.add(newProjectile);
     }

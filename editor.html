@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Walls95 Editor</title>
+    <script src="./editor.js"></script>
+    <style>
+        .tile {
+            border: 1px solid #000;
+            background: #eee;
+            margin: 0px;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+        }
+        .occupied-tile {
+            background: #66c;
+        }
+    </style>
+</head>
+<body>
+    <h2>Tge Level EDitor :)</h2>
+    <hr>
+    <input type="file" id="file">&nbsp;&lt;&lt;&nbsp;&nbsp;
+    <button onclick="importSelectedFile()">Edit map</button>
+    <button onclick="exportMap()">Export</button>
+    <a id="export-link" style="display: none;"></a>
+    <hr>
+    Select tile:
+    <select id="tile-select">
+        <option value=".">BLANK TILE</option>
+
+        <option disabled><b>-- Triggers/Spawns --</b></option>
+        <option value="^">Player Spawn</option>
+        <option value="*">Secret Trigger</option>
+
+        <option disabled><b>-- Items --</b></option>
+        <option value="i">Ice Cream (Item Pickup)</option>
+        <option value="d">Document (Item Pickup)</option>
+
+        <option disabled><b>-- Entities --</b></option>
+        <option value="B">Bob (Door)</option>
+
+        <option disabled><b>-- Other --</b></option>
+        <option value="W">Purple Tiled Wall</option>
+        <option value="P">Purple Painting Wall</option>
+        <option value="M">Purple Metal Wall</option>
+        <option value="Md">Purple Metal Door</option>
+    </select>
+    <br>
+    <div id="editor">
+        <br>
+    </div>
+</body>
+</html>

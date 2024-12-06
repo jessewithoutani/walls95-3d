@@ -26,6 +26,8 @@ let player = undefined;
 let playerVelocity = 0;
 let locked = false;
 
+let timeSinceLastShot = 999;
+
 let theta = 0;
 
 // POST PROCESSING
@@ -116,6 +118,14 @@ function setupScene() {
 var pressedKeys = {};
 window.onkeyup = function(event) { pressedKeys[event.key] = false; }
 window.onkeydown = function(event) { pressedKeys[event.key] = true; }
+window.onmousedown = function(event) {
+    const newProjectile = new Projectile(level, theta);
+    newProjectile.position.copy(player.position);
+    newProjectile.position.y = 1.8;
+    projectiles.push(newProjectile);
+    scene.add(newProjectile);
+    timeSinceLastShot = 0;
+}
 
 // start() update runs once before the first frame
 function start() {
@@ -162,13 +172,6 @@ const clock = new THREE.Clock();
 let timeElapsed = 0;
 // update() runs every frame
 function updateProjectiles(delta, theta) {
-    if (pressedKeys.e) {
-        const newProjectile = new Projectile(level, theta);
-        newProjectile.position.copy(player.position);
-        newProjectile.position.y = 1.8;
-        projectiles.push(newProjectile);
-        scene.add(newProjectile);
-    }
     // if (projectiles.length > 0 && projectiles[0].awaitingDeletion()) {
     //     scene.remove(projectiles[0]);
     //     projectiles.shift();
@@ -188,10 +191,18 @@ function update() {
 
     const delta = clock.getDelta();
     timeElapsed += delta;
+    timeSinceLastShot += delta;
 
     document.getElementById("user-data").innerHTML = JSON.stringify(player.userData)
         .replace("icecream", "<span id='ice-cream'>icecream</span>")
         .replace("document", "<span id='document'>document</span>");
+    
+    if (timeSinceLastShot <= 0.15) {
+        document.getElementById("right-hand").src = "textures/right_hand_fire.png";
+    }
+    else {
+        document.getElementById("right-hand").src = "textures/right_hand.png";
+    }
 
     // update stuff
     updatePlayer(delta);

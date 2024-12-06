@@ -6,6 +6,8 @@ const TILE_SIZE = 4;
 const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
 const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
 const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
+const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
+
 
 function inCylinderCollider(position, objectPosition, objectRadius, radius) {
     return ((position.x - objectPosition.x) ** 2 + (position.z - objectPosition.z) ** 2) <= (objectRadius + radius) ** 2;
@@ -154,6 +156,43 @@ function BlockDoor(texture) {
     // }
     return object;
 }
+
+function Exit() {
+    const object = new Tile(false, true, true); object.name = "ENTITY_EXIT";
+    let opened = false;
+    let sprite;
+
+    function inTrigger(position, radius = 0, player) {
+        if (opened && inSquareCollider(position, object.position, 2.2, radius)) {
+            //
+            return true;
+        }
+        return false;
+    }
+
+    function awake() {
+        sprite = new THREE.Sprite(exitMaterial);
+        object.add(sprite);
+        object.scale.set(2, 2, 2);
+    }
+    function update(delta) {
+        // if (opened) {
+        //     sprite.position.y -= 2.1 * delta;
+        //     if (sprite.position.y <= -4) object.remove(sprite);
+        // }
+    }
+    
+    object.inTrigger = inTrigger;
+    object.awake = awake;
+    object.update = update;
+    awake();
+    // object.clone = () => {
+    //     const cloned = Object.create(Object.getPrototypeOf(object), Object.getOwnPropertyDescriptors(object));
+    //     return cloned;
+    // }
+    return object;
+}
+
 function ItemPedestal(id) {
     const object = new Tile(true, true, true); object.name = "TILE_PDSTL";
     let item;
@@ -219,5 +258,5 @@ function SecretTrigger(main) {
 }
 
 export {
-    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger
+    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit
 }

@@ -12,7 +12,7 @@ export function Level(main, player, filePath = "testing.w95") {
         "W": () => { return new tiles.WallBlock(util.loadTexture("default.png", 4, 4)); },
         "P": () => { return new tiles.WallBlock(util.loadTexture("paintingwall.png")); },
         "M": () => { return new tiles.WallBlock(util.loadTexture("metal.png")); },
-        "E": () => { return new tiles.WallBlock(util.loadTexture("exit.png")); },
+        "E": () => { return new tiles.Exit(); },
         "N": () => { return new tiles.NormalWallBlock(); },
     
         "Md": () => { return new tiles.BlockDoor(util.loadTexture("metal.png")); },

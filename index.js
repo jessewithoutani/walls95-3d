@@ -26,6 +26,7 @@ let player = undefined;
 let playerVelocity = 0;
 let locked = false;
 
+let combatCooldown = 0.15;
 let timeSinceLastShot = 999;
 
 let theta = 0;
@@ -119,6 +120,7 @@ var pressedKeys = {};
 window.onkeyup = function(event) { pressedKeys[event.key] = false; }
 window.onkeydown = function(event) { pressedKeys[event.key] = true; }
 window.onmousedown = function(event) {
+    if (timeSinceLastShot <= combatCooldown) return;
     const newProjectile = new Projectile(level, theta);
     newProjectile.position.copy(player.position);
     newProjectile.position.y = 1.8;
@@ -197,7 +199,7 @@ function update() {
         .replace("icecream", "<span id='ice-cream'>icecream</span>")
         .replace("document", "<span id='document'>document</span>");
     
-    if (timeSinceLastShot <= 0.15) {
+    if (timeSinceLastShot >= 0.02 && timeSinceLastShot <= 0.13) {
         document.getElementById("right-hand").src = "textures/right_hand_fire.png";
     }
     else {

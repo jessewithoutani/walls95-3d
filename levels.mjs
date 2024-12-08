@@ -21,6 +21,8 @@ export function Level(main, player, filePath = "testing.w95") {
     
         "d": () => { return new tiles.ItemPedestal("document") },
         "i": () => { return new tiles.ItemPedestal("icecream") },
+
+        "p": () => { return new tiles.PlantPot() },
     
         "*": () => { return new tiles.SecretTrigger(main); }
     }

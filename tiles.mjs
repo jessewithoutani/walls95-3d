@@ -240,6 +240,29 @@ function ItemPedestal(id) {
     return object;
 }
 
+function PlantPot() {
+    const object = new Tile(true, false, false); object.name = "TILE_PDSTL";
+    let item;
+    let timeElapsed = 0;
+    let collected = false;
+
+    function colliding(position, radius = 0) {
+        return inCylinderCollider(position, object.position, 0.5, radius);
+    }
+
+    function awake() {        
+        const pedestal = new THREE.Sprite(new THREE.SpriteMaterial({ map: util.loadTexture("plant.png") }));
+        object.add(pedestal);
+        pedestal.scale.set(4, 4, 4);
+    }
+    
+    object.colliding = colliding;
+    object.awake = awake;
+    awake();
+
+    return object;
+}
+
 function SecretTrigger(main) {
     const object = new Tile(false, true); object.name = "TILE_STRIGG";
     let alreadyFound = false;
@@ -258,5 +281,5 @@ function SecretTrigger(main) {
 }
 
 export {
-    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit
+    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot
 }

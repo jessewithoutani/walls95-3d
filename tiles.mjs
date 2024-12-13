@@ -280,6 +280,29 @@ function SecretTrigger(main) {
     return object;
 }
 
+function RusherEnemy(texture, speed, damage, _radius = 1.25) {
+    const object = new Tile(false, true, false);
+    let item;
+    let timeElapsed = 0;
+    let collected = false;
+
+    function inTrigger(position, radius = 0, player) {
+        return inCylinderCollider(position, object.position, _radius, radius);
+    }
+
+    function awake() {        
+        const pedestal = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
+        object.add(pedestal);
+        pedestal.scale.set(4, 4, 4);
+    }
+    
+    object.colliding = colliding;
+    object.awake = awake;
+    awake();
+
+    return object;
+}
+
 export {
     WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot
 }

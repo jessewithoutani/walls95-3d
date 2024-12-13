@@ -90,12 +90,27 @@ export function Level(main, player, filePath = "testing.w95") {
             requiresUpdate[i].update(delta);
         }
     }
+    const raycastPercision = 0.03;
+    function raycast(a, b, max = 9999, radius = 0.025) {
+        const originalDistance = Math.min(a.distanceTo(b), max); // clamp distance to travel
+        const direction = b.clone().sub(b).normalize().multiplyScalar(raycastPercision);
+        let remainingDistance = remainingDistance;
+        let checkPosition = a.clone();
+        while (remainingDistance > 0) {
+            remainingDistance -= raycastPercision;
+            checkPosition.add(direction);
+            if (checkIntersection(checkPosition, radius)) {
+                return checkPosition;
+            }
+        }
+        return null;
+    }
 
     Object.defineProperty(object, "finished", {
         get() { return finished; }
     });
     Object.assign(object, {
-        checkIntersection, checkTriggerIntersection, update
+        checkIntersection, checkTriggerIntersection, update, raycast
     })
     return object;
 }

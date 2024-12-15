@@ -5,7 +5,7 @@ import * as tiles from './tiles.mjs';
 const TILE_SIZE = 4;
 
 export function Level(main, player, filePath = "testing.w95") {
-
+    let object = new THREE.Object3D();
     let tilePalette = {
         "t": () => { return new tiles.WallBlock(util.loadTexture("tutorialbob.png")); },
     
@@ -24,12 +24,12 @@ export function Level(main, player, filePath = "testing.w95") {
 
         "p": () => { return new tiles.PlantPot() },
     
-        "*": () => { return new tiles.SecretTrigger(main); }
+        "*": () => { return new tiles.SecretTrigger(main); },
+
+        "eP": () => { return new tiles.RusherEnemy(object, util.loadTexture("entities/joshuapaley.png"), 5, 1, player); }
     }
 
 
-
-    let object = new THREE.Object3D();
     let finished = false;
 
     let colliders = [];
@@ -90,16 +90,18 @@ export function Level(main, player, filePath = "testing.w95") {
             requiresUpdate[i].update(delta);
         }
     }
-    const raycastPercision = 0.03;
+    const RAYCAST_PERCISION = 0.03;
     function raycast(a, b, max = 9999, radius = 0.025) {
         const originalDistance = Math.min(a.distanceTo(b), max); // clamp distance to travel
-        const direction = b.clone().sub(b).normalize().multiplyScalar(raycastPercision);
-        let remainingDistance = remainingDistance;
+        const direction = b.clone().sub(a).normalize().multiplyScalar(RAYCAST_PERCISION);
+        console.log(direction)
+        let remainingDistance = originalDistance;
         let checkPosition = a.clone();
         while (remainingDistance > 0) {
-            remainingDistance -= raycastPercision;
+            remainingDistance -= RAYCAST_PERCISION;
             checkPosition.add(direction);
             if (checkIntersection(checkPosition, radius)) {
+                console.log("intersect")
                 return checkPosition;
             }
         }

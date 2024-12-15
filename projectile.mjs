@@ -20,9 +20,9 @@ export function Projectile(level, theta, speed = 25) {
         object.scale.set(0.5, 0.5, 0.5);
     }
     function update(delta) {
-        console.log(`${theta} ${speed} ${delta}`)
+        // console.log(`${theta} ${speed} ${delta}`)
         const newDirectionVector = new THREE.Vector3(-Math.sin(theta) * speed * delta, 0, -Math.cos(theta) * speed * delta);
-        console.log(newDirectionVector)
+        // console.log(newDirectionVector)
         object.position.add(newDirectionVector);
         level.checkIntersection(object.position, 0.1);
     }

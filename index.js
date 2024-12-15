@@ -75,6 +75,7 @@ function setupPlayer() {
     player.position.set(0, 0, 0);
     scene.add(player);
     player.add(camera);
+    player.userData.health = 5;
     const controls = new PointerLockControls(camera, document.body);
     controls.pointerSpeed = 0.6;
     controls.minPolarAngle = Math.PI/2;
@@ -180,7 +181,7 @@ function updateProjectiles(delta, theta) {
     // }
     projectiles.forEach(projectile => {
         projectile.update(delta);
-        console.log(projectile.position)
+        // console.log(projectile.position)
     });
 }
 function update() {

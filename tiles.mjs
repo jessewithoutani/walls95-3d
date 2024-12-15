@@ -280,14 +280,21 @@ function SecretTrigger(main) {
     return object;
 }
 
-function RusherEnemy(texture, speed, damage, _radius = 1.25) {
-    const object = new Tile(false, true, false);
+function RusherEnemy(level, texture, speed, damage, player, cooldown = 0.3, detectionRadius = 25, _radius = 1.25) {
+    const object = new Tile(false, true, true);
     let item;
     let timeElapsed = 0;
     let collected = false;
 
-    function inTrigger(position, radius = 0, player) {
-        return inCylinderCollider(position, object.position, _radius, radius);
+    let timeSinceLastAttack = 999;
+
+    function inTrigger(position, radius = 0, _player) {
+        const _inTrigger = inCylinderCollider(position, object.position, _radius, radius);
+        if (_player && _inTrigger && timeSinceLastAttack >= cooldown) {
+            _player.userData.health -= damage;
+            timeSinceLastAttack = 0;
+        }
+        return _inTrigger;
     }
 
     function awake() {        
@@ -295,14 +302,37 @@ function RusherEnemy(texture, speed, damage, _radius = 1.25) {
         object.add(pedestal);
         pedestal.scale.set(4, 4, 4);
     }
+
+    function update(delta) {
+        timeSinceLastAttack += delta;
+        const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
+        const distance = player.position.distanceTo(object.position);
+        moveVector.y = 0;
+        if (distance >= 0.5 && distance <= detectionRadius && level.raycast(object.position, player.position) == null) {
+            // object.position.add(direction);
+            const moveX = moveVector.clone(); moveX.z = 0;
+            const moveZ = moveVector.clone(); moveZ.x = 0;
+
+            object.position.add(moveX);
+            if (level.checkIntersection(object.position, _radius)) {
+                object.position.sub(moveX);
+            }
+            object.position.add(moveZ);
+            if (level.checkIntersection(object.position, _radius)) {
+                object.position.sub(moveZ);
+            }
+        }
+    }
     
-    object.colliding = colliding;
+    // object.colliding = colliding;
     object.awake = awake;
+    object.update = update;
+    object.inTrigger = inTrigger;
     awake();
 
     return object;
 }
 
 export {
-    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot
+    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot, RusherEnemy
 }

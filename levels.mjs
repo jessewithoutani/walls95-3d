@@ -4,7 +4,7 @@ import * as tiles from './tiles.mjs';
 
 const TILE_SIZE = 4;
 
-export function Level(main, player, filePath = "testing.w95") {
+export function Level(main, player, filePath = "welcome.w95") {
     let object = new THREE.Object3D();
     let tilePalette = {
         "t": () => { return new tiles.WallBlock(util.loadTexture("tutorialbob.png")); },

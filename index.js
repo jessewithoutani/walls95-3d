@@ -24,6 +24,8 @@ let camera = undefined;
 
 let player = undefined;
 let playerVelocity = 0;
+const MAX_HEALTH = 5;
+let dead = false;
 let locked = false;
 
 let combatCooldown = 0.15;
@@ -68,6 +70,7 @@ function setupCamera() {
         0.1, 7500);
     camera.rotation.order = 'YXZ';
 }
+let controls = null;
 function setupPlayer() {
     setupCamera();
     setupSky();
@@ -76,7 +79,7 @@ function setupPlayer() {
     scene.add(player);
     player.add(camera);
     player.userData.health = 5;
-    const controls = new PointerLockControls(camera, document.body);
+    controls = new PointerLockControls(camera, document.body);
     controls.pointerSpeed = 0.6;
     controls.minPolarAngle = Math.PI/2;
     controls.maxPolarAngle = Math.PI/2;
@@ -90,9 +93,11 @@ function setupPlayer() {
         locked = false;
     });
     document.body.addEventListener("click", () => {
+        if (dead) return;
         controls.lock();
     });
 
+    controls.lock();
     player.name = "PLAYER";
 }
 let level = undefined;
@@ -119,7 +124,12 @@ function setupScene() {
 }
 var pressedKeys = {};
 window.onkeyup = function(event) { pressedKeys[event.key] = false; }
-window.onkeydown = function(event) { pressedKeys[event.key] = true; }
+window.onkeydown = function(event) {
+    if (dead && event.key == " ") {
+        location.reload();
+    }
+    pressedKeys[event.key] = true;
+}
 window.onmousedown = function(event) {
     if (timeSinceLastShot <= combatCooldown) return;
     const newProjectile = new Projectile(level, theta);
@@ -134,6 +144,8 @@ window.onmousedown = function(event) {
 function start() {
     setupPlayer();
     setupScene();
+    healthIcons = document.querySelectorAll("#health .icon");
+    previousHealth = player.userData.health;
 }
 
 const WALK_SPEED = 7;
@@ -184,9 +196,14 @@ function updateProjectiles(delta, theta) {
         // console.log(projectile.position)
     });
 }
+let healthIcons = null;
+let previousHealth = 0;
+let damageOverlayTransparency = 0;
+let healOverlayTransparency = 0;
+
 function update() {
     requestAnimationFrame(update);
-    if (!level || !level.finished) {
+    if (!level || !level.finished || dead) {
         return;
     }
 
@@ -199,6 +216,17 @@ function update() {
     document.getElementById("user-data").innerHTML = JSON.stringify(player.userData)
         .replace("icecream", "<span id='ice-cream'>icecream</span>")
         .replace("document", "<span id='document'>document</span>");
+
+    let iconIndex = 0;
+    healthIcons.forEach((element) => {
+        if (player.userData.health <= iconIndex) {
+            element.classList.add("blacked-icon");
+        }
+        else {
+            element.classList.remove("blacked-icon");
+        }
+        iconIndex++;
+    })
     
     if (timeSinceLastShot >= 0.02 && timeSinceLastShot <= 0.13) {
         document.getElementById("right-hand").src = "textures/right_hand_fire.png";
@@ -206,6 +234,28 @@ function update() {
     else {
         document.getElementById("right-hand").src = "textures/right_hand.png";
     }
+
+    player.userData.health = util.clamp(player.userData.health, 0, MAX_HEALTH);
+    damageOverlayTransparency = util.lerp(damageOverlayTransparency, (1 - player.userData.health / MAX_HEALTH) * 0.6, 0.35);
+    healOverlayTransparency *= 0.8;
+    if (player.userData.health <= 0) {
+        document.getElementById("death-screen").classList.remove("hidden");
+        dead = true;
+        controls.unlock();
+        document.querySelector("canvas").remove();
+        return;
+    }
+    else if (player.userData.health != previousHealth) {
+        if (player.userData.health < previousHealth) {
+            damageOverlayTransparency = 1;
+        }
+        else {
+            healOverlayTransparency = 1;
+        }
+    }
+    previousHealth = player.userData.health;
+    document.getElementById("damage-overlay").style.opacity = damageOverlayTransparency;
+    document.getElementById("heal-overlay").style.opacity = healOverlayTransparency;
 
     // update stuff
     updatePlayer(delta);
@@ -220,5 +270,7 @@ let main = {
     secretFound
 };
 
-start();
-update();
+document.body.onload = () => {
+    start();
+    update();
+}

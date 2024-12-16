@@ -11,6 +11,7 @@
                 overflow: hidden;
                 font-family: "fixedsys";
                 color: #fff;
+                line-height: 1.25em;
             }
             canvas {
                 background: #999;
@@ -19,6 +20,9 @@
                 top: 50vh;
                 left: 50vw;
                 transform: translate(-50%, -50%)
+            }
+            .hidden {
+                display: none;
             }
             .viewmodel {
                 height: 100vh;
@@ -43,6 +47,12 @@
                 animation: bob-orb 2s infinite;
                 pointer-events: none;
             }
+            .icon {
+                height: 48px;
+                width: 48px;
+                image-rendering: pixelated;
+                filter: drop-shadow(7px 7px 0px rgba(0, 0, 0, 0.5));
+            }
             @keyframes bob {
                 0%, 100% {
                     top: 0vh;
@@ -60,17 +70,31 @@
                 }
             }
             #dataviewer {
-                background: #000;
-                border: 5px outset #e38400;
-                color: #fff;
                 position: fixed;
                 top: 80px;
                 left: 80px;
-                width: 300px;
+                width: 400px;
                 height: fit-content;
-                padding: 10px;
                 z-index: 10;
-                box-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+                /* background: radial-gradient(circle, rgba(2,0,36,0.6) 0%, rgba(0,0,0,0.2) 35%, rgba(0,212,255,0) 100%); */
+                padding: 12px;
+                text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+            }
+            .window {
+                background: #c0c0c0;
+                border-top: 20px solid #4c38a2;
+                outline: 2px outset #aaa;
+                color: #222;
+                padding: 10px;
+                box-shadow: 7px 7px 0px rgba(0, 0, 0, 0.5);
+            }
+            #death-screen {
+                background: #3a1ea9;
+                position: fixed;
+                width: 100vw;
+                height: 100vh;
+                /* pointer-events: none; */
+                z-index: 800;
             }
             #secret {
                 position: fixed;
@@ -111,6 +135,13 @@
                     background-position: 0 50px;
                 }
             }
+            @keyframes blink {
+                0% { opacity: 0; }
+                60% { opacity: 0; }
+                70% { opacity: 1; }
+                90% { opacity: 1; }
+                100% { opacity: 0; }
+            }
             #scanline-overlay {
                 background: repeating-linear-gradient(transparent, transparent 30px, rgba(0, 0, 0, 0.03) 30px, rgba(0, 0, 0, 0.03) 50px);
                 position: fixed;
@@ -118,7 +149,29 @@
                 height: 100vh;
                 pointer-events: none;
                 animation: move-background 1.2s linear infinite;
-                z-index: 1000;
+                z-index: 999;
+            }
+            #damage-overlay {
+                background: radial-gradient(circle, transparent 0%, #8f2121 100%);
+                position: fixed;
+                width: 100vw;
+                height: 100vh;
+                pointer-events: none;
+                z-index: 901;
+            }
+            #heal-overlay {
+                background: radial-gradient(circle, transparent 0%, #5aabe4 100%);
+                position: fixed;
+                width: 100vw;
+                height: 100vh;
+                pointer-events: none;
+                z-index: 900;
+            }
+            .blacked-icon {
+                filter: grayscale(1) invert(1) brightness(10%) drop-shadow(7px 7px 0px rgba(0, 0, 0, 0.5));
+            }
+            .blinking {
+                animation: blink 0.7s linear infinite;
             }
 		</style>
         <script type="importmap">
@@ -138,12 +191,34 @@
         <img src="textures/eyespy.gif" class="viewmodel-orb">
 
         <div id="dataviewer">
-            <span class="danger" style="font-size: 1.3em;">DATAVIEWER v1.0</span>
+            <!-- <span class="danger" style="font-size: 1.3em;">DATAVIEWER v1.0</span> -->
+            <div id="health">
+                <img src="textures/heart.gif" class="icon">
+                <img src="textures/heart.gif" class="icon">
+                <img src="textures/heart.gif" class="icon">
+                <img src="textures/heart.gif" class="icon">
+                <img src="textures/heart.gif" class="icon">
+            </div>
             <p id="user-data"></p>
         </div>
         <h1 id="secret" style="display: none;"><span class="ugly">You found a</span> SECRET</h1>
 
-        <div id="scanline-overlay">
+        <div id="death-screen" class="hidden">
+            <center style="margin-top: 30vh;">
+                <span style="background: #d2d2d2; padding: 2px 15px; color: #3a1ea9;">Walls 95</span>
+                <br><br>
+                <div style="width: 700px; text-align: left;">
+                    An error has occurred. To continue:<br><br>
+                    You must restart your system. If you do this, you will lose any unsaved information in all open applications.<br><br>
+                    Error: SK_ISSUE : 016F : BFF9B3D4<br><br>
+                </div>
+                <br>
+                Press SPACE to continue <span class="blinking">_</span>
+            </center>
         </div>
+
+        <div id="damage-overlay"></div>
+        <div id="heal-overlay"></div>
+        <div id="scanline-overlay"></div>
 	</body>
 </html>

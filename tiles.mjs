@@ -304,6 +304,7 @@ function RusherEnemy(level, texture, speed, damage, player, cooldown = 0.3, dete
     }
 
     function update(delta) {
+        timeElapsed += delta;
         timeSinceLastAttack += delta;
         const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
         const distance = player.position.distanceTo(object.position);

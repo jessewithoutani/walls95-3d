@@ -1,0 +1,169 @@
+@import url("https://unpkg.com/fixedsys-css/css/fixedsys.css");
+body {
+    background: #000;
+    margin: 0;
+    overflow: hidden;
+    font-family: "fixedsys";
+    color: #fff;
+    line-height: 1.25em;
+}
+canvas {
+    background: #999;
+    image-rendering: pixelated;
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    transform: translate(-50%, -50%)
+}
+.hidden {
+    display: none;
+}
+.viewmodel {
+    height: 100vh;
+    width: 100vh;
+    image-rendering: pixelated;
+    position: fixed;
+    top: 0vh;
+    left: 50vw;
+    z-index: 100;
+    animation: bob 2s infinite;
+    pointer-events: none;
+}
+.viewmodel-orb {
+    height: 25vh;
+    width: 25vh;
+    image-rendering: pixelated;
+    position: fixed;
+    top: 50vh;
+    left: 50vw;
+    transform: translateX(-60vh);
+    z-index: 101;
+    animation: bob-orb 2s infinite;
+    pointer-events: none;
+}
+.icon {
+    height: 48px;
+    width: 48px;
+    image-rendering: pixelated;
+    filter: drop-shadow(7px 7px 0px rgba(0, 0, 0, 0.5));
+}
+@keyframes bob {
+    0%, 100% {
+        top: 0vh;
+    }
+    50% {
+        top: 2vh;
+    }
+}
+@keyframes bob-orb {
+    0%, 100% {
+        top: 50vh;
+    }
+    50% {
+        top: 51vh;
+    }
+}
+#dataviewer {
+    position: fixed;
+    top: 80px;
+    left: 80px;
+    width: 400px;
+    height: fit-content;
+    z-index: 10;
+    /* background: radial-gradient(circle, rgba(2,0,36,0.6) 0%, rgba(0,0,0,0.2) 35%, rgba(0,212,255,0) 100%); */
+    padding: 12px;
+    text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+}
+.window {
+    background: #c0c0c0;
+    border-top: 20px solid #4c38a2;
+    outline: 2px outset #aaa;
+    color: #222;
+    padding: 10px;
+    box-shadow: 7px 7px 0px rgba(0, 0, 0, 0.5);
+}
+#death-screen {
+    background: #3a1ea9;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    /* pointer-events: none; */
+    z-index: 800;
+}
+#secret {
+    position: fixed;
+    top: 20vh;
+    left: 50vw;
+    transform: translateX(-50%);
+    z-index: 200;
+    text-decoration: wavy underline;
+
+    animation: secret-effect 1.5s infinite;
+    text-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+}
+@keyframes secret-effect {
+    0%, 100% {
+        color: #ffa11d;
+    }
+    33% {
+        color: #ff00c8;
+    }
+    66% {
+        color: #7eb82c;
+    }
+}
+.danger {
+    color: #ff5454;
+}
+.ugly {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+}
+#ice-cream { color: #ff00c8; }
+#document { color: #7eb82c; }
+
+@keyframes move-background {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: 0 50px;
+    }
+}
+@keyframes blink {
+    0% { opacity: 0; }
+    60% { opacity: 0; }
+    70% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { opacity: 0; }
+}
+#scanline-overlay {
+    background: repeating-linear-gradient(transparent, transparent 30px, rgba(0, 0, 0, 0.03) 30px, rgba(0, 0, 0, 0.03) 50px);
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    animation: move-background 1.2s linear infinite;
+    z-index: 999;
+}
+#damage-overlay {
+    background: radial-gradient(circle, transparent 0%, #8f2121 100%);
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 901;
+}
+#heal-overlay {
+    background: radial-gradient(circle, transparent 0%, #5aabe4 100%);
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 900;
+}
+.blacked-icon {
+    filter: grayscale(1) invert(1) brightness(10%) drop-shadow(7px 7px 0px rgba(0, 0, 0, 0.5));
+}
+.blinking {
+    animation: blink 0.7s linear infinite;
+}

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>WALLS 95</title>
+		<link rel="stylesheet" href="index.css">
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@v0.167.1/build/three.module.js",
+                    "three/addons/": "https://unpkg.com/three@v0.167.1/examples/jsm/"
+                }
+            }
+        </script>
+        <script type="module" src="index.js"></script>
+	</head>
+	<body>
+        <!--  onerror="alert(event)" -->
+        <img src="textures/left_hand.png" class="viewmodel" style="transform: translateX(-75vh) !important;">
+        <img src="textures/right_hand.png" class="viewmodel" id="right-hand" style="transform: translateX(-25vh) !important;">
+        <img src="textures/eyespy.gif" class="viewmodel-orb">
+
+        <div id="dataviewer">
+            <!-- <span class="danger" style="font-size: 1.3em;">DATAVIEWER v1.0</span> -->
+            <div id="health">
+                <img src="textures/heart.gif" class="icon">
+                <img src="textures/heart.gif" class="icon">
+                <img src="textures/heart.gif" class="icon">
+                <img src="textures/heart.gif" class="icon">
+                <img src="textures/heart.gif" class="icon">
+            </div>
+            <p id="user-data"></p>
+        </div>
+        <h1 id="secret" style="display: none;"><span class="ugly">You found a</span> SECRET</h1>
+
+        <div id="death-screen" class="hidden">
+            <center style="margin-top: 30vh;">
+                <span style="background: #d2d2d2; padding: 2px 15px; color: #3a1ea9;">Walls 95</span>
+                <br><br>
+                <div style="width: 700px; text-align: left;">
+                    An error has occurred. To continue:<br><br>
+                    You must restart your system. If you do this, you will lose any unsaved information in all open applications.<br><br>
+                    Error: SK_ISSUE : 016F : BFF9B3D4<br><br>
+                </div>
+                <br>
+                Press SPACE to continue <span class="blinking">_</span>
+            </center>
+        </div>
+
+        <div id="damage-overlay"></div>
+        <div id="heal-overlay"></div>
+        <div id="scanline-overlay"></div>
+	</body>
+</html>

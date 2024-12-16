@@ -119,7 +119,11 @@ function setupScene() {
 
     // ======================================
     console.log(main);
-    level = new Level(main, player); level.name = "LEVEL";
+    const urlParams = new URLSearchParams(window.location.search);
+    const filePath = atob(urlParams.get("filePath"));
+    // alert(filePath)
+    level = new Level(main, player, filePath);
+    level.name = "LEVEL";
     scene.add(level);
 }
 var pressedKeys = {};

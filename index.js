@@ -131,6 +131,10 @@ window.onkeyup = function(event) { pressedKeys[event.key] = false; }
 window.onkeydown = function(event) {
     if (dead && event.key == " ") {
         location.reload();
+        return;
+    }
+    if (event.key == "e") {
+        window.onmousedown();
     }
     pressedKeys[event.key] = true;
 }
@@ -138,7 +142,7 @@ window.onmousedown = function(event) {
     if (timeSinceLastShot <= combatCooldown) return;
     const newProjectile = new Projectile(level, theta);
     newProjectile.position.copy(player.position);
-    newProjectile.position.y = 1.8;
+    newProjectile.position.y = 1.85;
     projectiles.push(newProjectile);
     scene.add(newProjectile);
     timeSinceLastShot = 0;
@@ -232,7 +236,7 @@ function update() {
         iconIndex++;
     })
     
-    if (timeSinceLastShot >= 0.02 && timeSinceLastShot <= 0.13) {
+    if (timeSinceLastShot <= 0.12) {
         document.getElementById("right-hand").src = "textures/right_hand_fire.png";
     }
     else {

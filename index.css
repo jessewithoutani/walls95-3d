@@ -161,6 +161,17 @@ canvas {
     pointer-events: none;
     z-index: 900;
 }
+#crosshair {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+    position: fixed;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+    z-index: 500;
+}
+
 .blacked-icon {
     filter: grayscale(1) invert(1) brightness(10%) drop-shadow(7px 7px 0px rgba(0, 0, 0, 0.5));
 }

@@ -26,13 +26,14 @@ export function Level(main, player, filePath = "welcome.w95") {
     
         "*": () => { return new tiles.SecretTrigger(main); },
 
-        "eP": () => { return new tiles.RusherEnemy(object, util.loadTexture("entities/joshuapaley.png"), 5, 1, player); }
+        "eP": () => { return new tiles.RusherEnemy(object, util.loadTexture("entities/joshuapaley.png"), 7, 1, player); }
     }
 
 
     let finished = false;
 
     let colliders = [];
+    let enemyColliders = [];
     let triggers = [];
     let requiresUpdate = [];
 
@@ -55,7 +56,14 @@ export function Level(main, player, filePath = "welcome.w95") {
                     newTile.position.set(x * TILE_SIZE, TILE_SIZE / 2, z * TILE_SIZE);
                     object.add(newTile);
                     // add to respective lists
-                    if (newTile.collision) colliders.push(newTile);
+                    if (newTile.collision) {
+                        if (newTile.enemy) {
+                            enemyColliders.push(newTile);
+                        }
+                        else {
+                            colliders.push(newTile);
+                        }
+                    }
                     if (newTile.trigger) triggers.push(newTile);
                     if (newTile.requiresUpdate) requiresUpdate.push(newTile);
                 }
@@ -66,11 +74,12 @@ export function Level(main, player, filePath = "welcome.w95") {
         });
         finished = true;
     }
-    function checkIntersection(position, radius) {
-        for (let i = 0; i < colliders.length; i++) {
-            const _object = colliders[i];
+    function checkIntersection(position, radius, enemiesOnly = false) {
+        const checkedColliders = (enemiesOnly) ? enemyColliders : colliders;
+        for (let i = 0; i < checkedColliders.length; i++) {
+            const _object = checkedColliders[i];
             if (_object.colliding(position, radius)) {
-                return true;
+                return _object;
             }
         }
         return false;

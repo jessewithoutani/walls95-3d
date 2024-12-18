@@ -18,7 +18,7 @@ function inSquareCollider(position, objectPosition, objectHalfLength, radius) {
 }
 
 
-function Tile(collision = false, trigger = false, requiresUpdate = false) {
+function Tile(collision = false, trigger = false, requiresUpdate = false, enemy = false) {
     const object = new THREE.Object3D();
 
     function colliding(position, radius = 0) {
@@ -32,7 +32,7 @@ function Tile(collision = false, trigger = false, requiresUpdate = false) {
     function update(delta) {}
 
     Object.assign(object, {
-        collision, trigger, requiresUpdate,
+        collision, trigger, requiresUpdate, enemy,
         colliding, inTrigger, awake, update
     });
     return object;
@@ -122,7 +122,7 @@ function BlockDoor(texture) {
     let sprite;
 
     function colliding(position, radius = 0) {
-        return sprite.position.y > -3.5 && inSquareCollider(position, object.position, 2, radius);
+        return sprite.position.y > -2 && inSquareCollider(position, object.position, 2, radius);
     }
 
     function inTrigger(position, radius = 0, player) {
@@ -280,16 +280,23 @@ function SecretTrigger(main) {
     return object;
 }
 
-function RusherEnemy(level, texture, speed, damage, player, cooldown = 0.3, detectionRadius = 25, _radius = 1.25) {
-    const object = new Tile(false, true, true);
+function RusherEnemy(level, texture, speed, damage, player, scale = 2, maxHealth = 1, cooldown = 0.75, detectionRadius = 25, attackRadius = 2, _radius = 1) {
+    const object = new Tile(true, true, true, true);
     let item;
     let timeElapsed = 0;
     let collected = false;
+    let dead = false;
+    let health = maxHealth;
+    let deathVelocity = 0;
 
     let timeSinceLastAttack = 999;
 
+    function colliding(position, radius = 0, _player) {
+        return !dead && inCylinderCollider(position, object.position, _radius, radius);
+    }
+
     function inTrigger(position, radius = 0, _player) {
-        const _inTrigger = inCylinderCollider(position, object.position, _radius, radius);
+        const _inTrigger = !dead && inCylinderCollider(position, object.position, attackRadius, radius);
         if (_player && _inTrigger && timeSinceLastAttack >= cooldown) {
             _player.userData.health -= damage;
             timeSinceLastAttack = 0;
@@ -300,10 +307,15 @@ function RusherEnemy(level, texture, speed, damage, player, cooldown = 0.3, dete
     function awake() {        
         const pedestal = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
         object.add(pedestal);
-        pedestal.scale.set(4, 4, 4);
+        pedestal.scale.set(scale, scale, scale);
     }
 
     function update(delta) {
+        if (dead) {
+            deathVelocity += 37.5 * delta;
+            object.position.y -= deathVelocity * delta;
+            return;
+        }
         timeElapsed += delta;
         timeSinceLastAttack += delta;
         const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
@@ -324,11 +336,21 @@ function RusherEnemy(level, texture, speed, damage, player, cooldown = 0.3, dete
             }
         }
     }
+
+    function _damage(amount) {
+        if (dead) return;
+        health -= amount;
+        if (health <= 0) {
+            deathVelocity = -12.5;
+            dead = true;
+        }
+    }
     
-    // object.colliding = colliding;
+    object.colliding = colliding;
     object.awake = awake;
     object.update = update;
     object.inTrigger = inTrigger;
+    object.damage = _damage;
     awake();
 
     return object;

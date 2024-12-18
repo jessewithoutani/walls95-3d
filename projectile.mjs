@@ -19,7 +19,7 @@ export function Projectile(level, theta, speed = 45) {
         sprite = new THREE.Sprite(projectileMaterials[projectileNumber % 3]);
         projectileNumber++;
         object.add(sprite);
-        object.scale.set(0.5, 0.5, 0.5);
+        object.scale.set(0.75 * 0.5, 0.75 * 0.5, 0.75 * 0.5);
     }
     function update(delta) {
         if (!hit) {

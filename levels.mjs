@@ -26,7 +26,11 @@ export function Level(main, player, filePath = "welcome.w95") {
     
         "*": () => { return new tiles.SecretTrigger(main); },
 
-        "eP": () => { return new tiles.RusherEnemy(object, util.loadTexture("entities/joshuapaley.png"), 7, 1, player); }
+        "eP": () => {
+            return new tiles.RusherEnemy(object, 
+                [util.loadTexture("entities/joshuapaley.png"), util.loadTexture("entities/joshuapaleyasdf.png")], 
+                util.loadTexture("entities/joshuapaleydead.png"), 7, 1, player);
+        }
     }
 
 

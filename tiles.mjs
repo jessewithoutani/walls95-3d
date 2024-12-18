@@ -280,16 +280,18 @@ function SecretTrigger(main) {
     return object;
 }
 
-function RusherEnemy(level, texture, speed, damage, player, scale = 2, maxHealth = 1, cooldown = 0.75, detectionRadius = 25, attackRadius = 2, _radius = 1) {
+function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps = 8, scale = 2, maxHealth = 1, cooldown = 0.75, detectionRadius = 25, attackRadius = 2, _radius = 1) {
     const object = new Tile(true, true, true, true);
-    let item;
+    let sprite;
+    const animationStartTime = Math.random() * 10;
     let timeElapsed = 0;
-    let collected = false;
     let dead = false;
     let health = maxHealth;
     let deathVelocity = 0;
 
+    const spf = 1 / fps;
     let timeSinceLastAttack = 999;
+    let sprites = [];
 
     function colliding(position, radius = 0, _player) {
         return !dead && inCylinderCollider(position, object.position, _radius, radius);
@@ -304,10 +306,13 @@ function RusherEnemy(level, texture, speed, damage, player, scale = 2, maxHealth
         return _inTrigger;
     }
 
-    function awake() {        
-        const pedestal = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture }));
-        object.add(pedestal);
-        pedestal.scale.set(scale, scale, scale);
+    function awake() {
+        for (let i = 0; i < textures.length; i++) {
+            sprites.push(new THREE.SpriteMaterial({ map: textures[i] }));
+        }
+        sprite = new THREE.Sprite(sprites[0]);
+        object.add(sprite);
+        sprite.scale.set(scale, scale, scale);
     }
 
     function update(delta) {
@@ -318,6 +323,10 @@ function RusherEnemy(level, texture, speed, damage, player, scale = 2, maxHealth
         }
         timeElapsed += delta;
         timeSinceLastAttack += delta;
+
+        // animate
+        sprite.material = sprites[Math.floor((animationStartTime + timeElapsed) / spf) % sprites.length];
+
         const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
         const distance = player.position.distanceTo(object.position);
         moveVector.y = 0;
@@ -342,6 +351,7 @@ function RusherEnemy(level, texture, speed, damage, player, scale = 2, maxHealth
         health -= amount;
         if (health <= 0) {
             deathVelocity = -12.5;
+            sprite.material = new THREE.SpriteMaterial({ map: deathTexture });
             dead = true;
         }
     }

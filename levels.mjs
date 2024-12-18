@@ -28,8 +28,8 @@ export function Level(main, player, filePath = "welcome.w95") {
 
         "eP": () => {
             return new tiles.RusherEnemy(object, 
-                [util.loadTexture("entities/joshuapaley.png"), util.loadTexture("entities/joshuapaleyasdf.png")], 
-                util.loadTexture("entities/joshuapaleydead.png"), 7, 1, player);
+                [util.loadTexture("entities/bog/bog1.png"), util.loadTexture("entities/bog/bog2.png")], 
+                util.loadTexture("entities/bog/bogdead.png"), 7, 1, player);
         }
     }
 

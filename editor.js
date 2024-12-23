@@ -44,3 +44,16 @@ function exportMap() {
     link.href = URL.createObjectURL(blob);
     link.click();
 }
+function playMap() {
+    let contents = "";
+    document.querySelectorAll("#editor div").forEach((element) => {
+        element.querySelectorAll(".tile").forEach((_element) => {
+            contents += `${_element.innerText} `;
+        });
+        contents += "\n";
+    })
+    contents = contents.substring(0, contents.length - 1)
+    const link = document.querySelector("#export-link");
+    link.href = `./level.html?filePath=${btoa(URL.createObjectURL(new Blob([contents], { type: "text/plain" })))}`
+    link.click();
+}

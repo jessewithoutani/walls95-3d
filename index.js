@@ -195,10 +195,10 @@ const clock = new THREE.Clock();
 let timeElapsed = 0;
 // update() runs every frame
 function updateProjectiles(delta, theta) {
-    // if (projectiles.length > 0 && projectiles[0].awaitingDeletion()) {
-    //     scene.remove(projectiles[0]);
-    //     projectiles.shift();
-    // }
+    if (projectiles.length > 0 && projectiles[0].awaitingDeletion()) {
+        scene.remove(projectiles[0]);
+        projectiles.shift();
+    }
     projectiles.forEach(projectile => {
         projectile.update(delta);
         // console.log(projectile.position)

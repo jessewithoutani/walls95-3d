@@ -18,7 +18,8 @@ document.body.appendChild(renderer.domElement);
 
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.FogExp2(0x86bde3, 0.05);
+// sky: 0x86bde3
+scene.fog = new THREE.FogExp2(0x000000, 0.05);
 scene.background = new THREE.Color(0x86bde3);
 let camera = undefined;
 
@@ -112,10 +113,17 @@ function setupScene() {
 
     // ======================================
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
-        map: util.loadTexture("floor.png", 500, 500)
+        map: util.loadTexture("tilefloor.png", 500, 500)
     })); ground.name = "GROUND";
     scene.add(ground);
     ground.rotation.x = -Math.PI / 2;
+
+    const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
+        map: util.loadTexture("tilefloor.png", 500, 500)
+    })); ceiling.name = "CEILING";
+    scene.add(ceiling);
+    ceiling.position.y = 4;
+    ceiling.rotation.x = Math.PI / 2;
 
     // ======================================
     console.log(main);

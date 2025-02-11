@@ -113,13 +113,13 @@ function setupScene() {
 
     // ======================================
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
-        map: util.loadTexture("tilefloor.png", 500, 500)
+        map: util.loadTexture("fancy_floor.png", 500, 500)
     })); ground.name = "GROUND";
     scene.add(ground);
     ground.rotation.x = -Math.PI / 2;
 
     const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
-        map: util.loadTexture("tilefloor.png", 500, 500)
+        map: util.loadTexture("fancy_floor.png", 500, 500)
     })); ceiling.name = "CEILING";
     scene.add(ceiling);
     ceiling.position.y = 4;

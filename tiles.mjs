@@ -280,7 +280,7 @@ function SecretTrigger(main) {
     return object;
 }
 
-function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps = 8, scale = 2, maxHealth = 2, cooldown = 0.75, detectionRadius = 25, attackRadius = 2, _radius = 1) {
+function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps = 8, scale = 2, maxHealth = 2, cooldown = 0.75, detectionRadius = 30, attackRadius = 2, _radius = 1) {
     const object = new Tile(true, true, true, true);
     let sprite;
     const animationStartTime = Math.random() * 10;

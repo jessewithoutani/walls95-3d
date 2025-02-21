@@ -32,9 +32,7 @@ export function Level(main, player, filePath = "welcome.w95") {
                 util.loadTexture("entities/bog/bogdead.png"), 13.5, 1, player);
         },
         "eS": () => { // Sniffer
-            return new tiles.RusherEnemy(object, 
-                [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
-                util.loadTexture("entities/sniffer/sniffer1.png"), 6.5, 1, player, 8, 4, 1000000000);
+            return new tiles.Sniffer(object, player);
         }
     }
 
@@ -45,6 +43,7 @@ export function Level(main, player, filePath = "welcome.w95") {
     let enemyColliders = [];
     let triggers = [];
     let requiresUpdate = [];
+    let traversableNodes = new Set([]);
 
     fetch(filePath).then((response) => {
         response.text().then((contents) => {
@@ -52,7 +51,23 @@ export function Level(main, player, filePath = "welcome.w95") {
         });
     });
 
+    function createTraversableNode(position) {
+        traversableNodes.add(vector2ToTileKey(position));
+        const indicatorPosition = tileToWorldCenter(position);
+        indicatorPosition.y = 0;
+        console.log(indicatorPosition)
+        const indicatorMesh = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 4), new THREE.MeshNormalMaterial);
+        indicatorMesh.position.copy(indicatorPosition);
+        object.add(indicatorMesh);
+    }
+    const vector2ToTileKey = JSON.stringify;
+    const keyToVector2 = JSON.parse;
+    function checkTileTraversable(position) {
+        traversableNodes.has(vector2ToTileKey(position));
+    }
+
     function loadLevel(contents) {
+        traversableNodes.clear();
         let rows = contents.split("\n");
         let x = 0; let z = 0;
         rows.forEach(row => {
@@ -63,6 +78,7 @@ export function Level(main, player, filePath = "welcome.w95") {
                 if (char in tilePalette) {
                     const newTile = tilePalette[char]();
                     newTile.position.set(x * TILE_SIZE, TILE_SIZE / 2, z * TILE_SIZE);
+
                     object.add(newTile);
                     // add to respective lists
                     if (newTile.collision) {
@@ -76,7 +92,13 @@ export function Level(main, player, filePath = "welcome.w95") {
                     if (newTile.trigger) triggers.push(newTile);
                     if (newTile.requiresUpdate) requiresUpdate.push(newTile);
                 }
-                else if (char == "^") player.position.set(x * TILE_SIZE, 0, z * TILE_SIZE)
+                else if (char == "^") {
+                    createTraversableNode(new THREE.Vector2(x, z));
+                    player.position.set(x * TILE_SIZE, 0, z * TILE_SIZE);
+                }
+                else {
+                    createTraversableNode(new THREE.Vector2(x, z));
+                }
                 x++;
             });
             z++;
@@ -112,25 +134,39 @@ export function Level(main, player, filePath = "welcome.w95") {
     function raycast(a, b, max = 9999, radius = 0.025) {
         const originalDistance = Math.min(a.distanceTo(b), max); // clamp distance to travel
         const direction = b.clone().sub(a).normalize().multiplyScalar(RAYCAST_PERCISION);
-        console.log(direction)
+        // console.log(direction)
         let remainingDistance = originalDistance;
         let checkPosition = a.clone();
         while (remainingDistance > 0) {
             remainingDistance -= RAYCAST_PERCISION;
             checkPosition.add(direction);
             if (checkIntersection(checkPosition, radius)) {
-                console.log("intersect")
+                // console.log("intersect")
                 return checkPosition;
             }
         }
         return null;
     }
 
+    function worldToTile(position) {
+        return new THREE.Vector2(Math.floor(position.x / TILE_SIZE), Math.floor(position.z / TILE_SIZE));
+    }
+    function tileToWorldCenter(position) {
+        return new THREE.Vector3(position.x * TILE_SIZE, 0, position.y * TILE_SIZE);
+    }
+    function tileToWorldCorner(position) {
+        return new THREE.Vector3(position.x * TILE_SIZE, 0, position.y * TILE_SIZE);
+    }
+
     Object.defineProperty(object, "finished", {
         get() { return finished; }
     });
+    Object.defineProperty(object, "traversableNodes", {
+        get() { return traversableNodes; }
+    })
     Object.assign(object, {
-        checkIntersection, checkTriggerIntersection, update, raycast
+        checkIntersection, checkTriggerIntersection, update, raycast,
+        vector2ToTileKey, keyToVector2
     })
     return object;
 }

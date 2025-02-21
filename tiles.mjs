@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import * as util from './util.mjs';
 
+const TRANSPARENT_TILES = true;
+
 const TILE_SIZE = 4;
 
 const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
@@ -46,9 +48,22 @@ function WallBlock(texture) {
     }
 
     function awake() {
-        object.add(
-            new THREE.Mesh(new THREE.BoxGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
-            new THREE.MeshPhongMaterial({ map: texture })));
+        if (TRANSPARENT_TILES) {
+            const tilePlane = new THREE.Mesh(new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
+                new THREE.MeshBasicMaterial());
+            object.add(tilePlane);
+            tilePlane.rotation.x = -Math.PI / 2;
+            tilePlane.position.y = -1.98;
+
+            // object.add(
+            //     new THREE.Mesh(new THREE.BoxGeometry(TILE_SIZE, TILE_SIZE - 0.01, TILE_SIZE), 
+            //     new THREE.MeshBasicMaterial({ wireframe: true, wireframeLinewidth: 2 })));
+        }
+        else {
+            object.add(
+                new THREE.Mesh(new THREE.BoxGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
+                new THREE.MeshPhongMaterial({ map: texture })));
+        }
     }
 
     object.colliding = colliding;
@@ -315,35 +330,54 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
         sprite.scale.set(scale, scale, scale);
     }
 
-    function update(delta) {
+    function inSight() {
+        const distance = player.position.distanceTo(object.position);
+        return !dead && distance >= 0.5 && distance <= detectionRadius && level.raycast(object.position, player.position) == null;
+    }
+
+    function updateTime(delta) {
+        timeElapsed += delta;
+        timeSinceLastAttack += delta;
+    }
+    function animate(delta) {
         if (dead) {
             deathVelocity += 37.5 * delta;
             object.position.y -= deathVelocity * delta;
             return;
         }
-        timeElapsed += delta;
-        timeSinceLastAttack += delta;
-
-        // animate
         sprite.material = sprites[Math.floor((animationStartTime + timeElapsed) / spf) % sprites.length];
+    }
+    function move(moveVector) {
+        if (dead) return;
+        const moveX = moveVector.clone(); moveX.z = 0;
+        const moveZ = moveVector.clone(); moveZ.x = 0;
 
-        const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
-        const distance = player.position.distanceTo(object.position);
-        moveVector.y = 0;
-        if (distance >= 0.5 && distance <= detectionRadius && level.raycast(object.position, player.position) == null) {
-            // object.position.add(direction);
-            const moveX = moveVector.clone(); moveX.z = 0;
-            const moveZ = moveVector.clone(); moveZ.x = 0;
-
-            object.position.add(moveX);
-            if (level.checkIntersection(object.position, _radius)) {
-                object.position.sub(moveX);
-            }
-            object.position.add(moveZ);
-            if (level.checkIntersection(object.position, _radius)) {
-                object.position.sub(moveZ);
-            }
+        object.position.add(moveX);
+        if (level.checkIntersection(object.position, _radius)) {
+            object.position.sub(moveX);
         }
+        object.position.add(moveZ);
+        if (level.checkIntersection(object.position, _radius)) {
+            object.position.sub(moveZ);
+        }
+    }
+
+    function update(delta) {
+        updateTime(delta);
+        animate(delta);
+    
+        if (inSight()) {
+            onSightUpdate(delta);
+        } else outOfSightUpdate(delta);
+    }
+
+    function onSightUpdate(delta) {
+        const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
+        moveVector.y = 0;
+        move(moveVector);
+    }
+    function outOfSightUpdate(delta) {
+        // nothing lmao
     }
 
     function _damage(amount) {
@@ -361,11 +395,75 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
     object.update = update;
     object.inTrigger = inTrigger;
     object.damage = _damage;
+
+    object.move = move;
+    object.updateTime = updateTime;
+    object.animate = animate;
+
+    object.onSightUpdate = onSightUpdate;
+    object.outOfSightUpdate = outOfSightUpdate;
     awake();
 
     return object;
 }
 
+
+function Sniffer(level, player) {
+    const sniffingRadius = 85;
+    const sniffingSpeed = 5;
+    const chargingSpeed = 7.25;
+    const object = new RusherEnemy(level, 
+        [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
+        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 500, player, 8, 4, 1000000000);
+    const diagonalCost = Math.sqrt(2);
+    const straightCost = 1;
+
+    let sniffingSearchNode = false;
+
+    function estimateMinCost() {
+        //
+    }
+    function calculateCost(from, to) {
+        // this assumes that the differences of the x and y distances are at most 1
+        return Math.sqrt(Math.abs(from.x - to.x) + Math.abs(from.y - to.y))
+    }
+    function aStar(from, to) {
+        const curNode = level.tileToWorldCenter(object.position);
+        
+    }
+
+
+    // If in direct line of sight, rush
+    // If not but in sniffing radius, slowly pathfind to player
+    function onSightUpdate(delta) {
+        const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
+        moveVector.y = 0;
+        object.move(moveVector);
+    }
+    function outOfSightUpdate(delta) {
+        const distance = player.position.distanceTo(object.position);
+        if (distance <= sniffingRadius) {
+            sniffedUpdate(delta);
+        }
+        else {
+            unsniffedUpdate(delta);
+        }
+    }
+
+    function sniffedUpdate(delta) {
+        //
+    }
+    function unsniffedUpdate(delta) {
+        //
+    }
+
+    object.onSightUpdate = onSightUpdate;
+    object.outOfSightUpdate = outOfSightUpdate;
+
+    return object;
+}
+
 export {
-    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot, RusherEnemy
+    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot, 
+    RusherEnemy, Sniffer
 }

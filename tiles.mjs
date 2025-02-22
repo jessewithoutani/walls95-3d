@@ -420,18 +420,6 @@ function Sniffer(level, player) {
 
     let sniffingSearchNode = false;
 
-    function estimateMinCost() {
-        //
-    }
-    function calculateCost(from, to) {
-        // this assumes that the differences of the x and y distances are at most 1
-        return Math.sqrt(Math.abs(from.x - to.x) + Math.abs(from.y - to.y))
-    }
-    function aStar(from, to) {
-        const curNode = level.tileToWorldCenter(object.position);
-        
-    }
-
 
     // If in direct line of sight, rush
     // If not but in sniffing radius, slowly pathfind to player

@@ -158,6 +158,103 @@ export function Level(main, player, filePath = "welcome.w95") {
         return new THREE.Vector3(position.x * TILE_SIZE, 0, position.y * TILE_SIZE);
     }
 
+    // ===============================================
+    // PATHFINDING STUFF
+    const STRAIGHT_COST = 1;
+    const DIAGONAL_COST = sqrt(2);
+    const P = 1 / 1000; // (min cost of taking one step) / (max expected path length)
+
+    function heuristic(from, to) {
+        const dx = Math.abs(from.x - to.x);
+        const dy = Math.abs(from.y - to.y);
+        return STRAIGHT_COST * (dx + dy) + (DIAGONAL_COST - 2 * STRAIGHT_COST) * Math.min(dx, dy)
+            * (1 + P);
+    }
+    function pathCost(from, to) {
+        // this assumes that the differences of the x and y distances are at most 1
+        return Math.sqrt(Math.abs(from.x - to.x) + Math.abs(from.y - to.y));
+    }
+    function getAdjacentTiles(node) {
+        const possibilities = [
+            new THREE.Vector2(node.x + 1, node.y),
+            new THREE.Vector2(node.x - 1, node.y),
+            new THREE.Vector2(node.x, node.y + 1),
+            new THREE.Vector2(node.x, node.y - 1),
+
+            new THREE.Vector2(node.x + 1, node.y + 1),
+            new THREE.Vector2(node.x + 1, node.y - 1),
+            new THREE.Vector2(node.x - 1, node.y + 1),
+            new THREE.Vector2(node.x - 1, node.y - 1)
+        ];
+        const result = [];
+        possibilities.forEach((possibility) => {
+            if (checkTileTraversable(possibility)) {
+                result.push(possibility);
+            }
+        })
+        return result;
+    }
+    // https://theory.stanford.edu/~amitp/GameProgramming/ImplementationNotes.html
+    function aStar(object, from, to) {
+        const curNode = tileToWorldCenter(object.position);
+        let open = new Set([vector2ToTileKey(curNode)]); // "canidates for examining"
+        let closed = new Set([]); // "already examined"
+        // while lowest rank in OPEN is not the GOAL:
+        //     current = remove lowest rank item from OPEN
+        //     add current to CLOSED
+        //     for neighbors of current:
+        //         cost = g(current) + movementcost(current, neighbor)
+        //         if neighbor in OPEN and cost less than g(neighbor):
+        //         remove neighbor from OPEN, because new path is better
+        //         if neighbor in CLOSED and cost less than g(neighbor): ⁽²⁾
+        //         remove neighbor from CLOSED
+        //         if neighbor not in OPEN and neighbor not in CLOSED:
+        //         set g(neighbor) to cost
+        //         add neighbor to OPEN
+        //         set priority queue rank to g(neighbor) + h(neighbor)
+        //         set neighbor's parent to current
+        function getLowestScored() {
+            let lowestCost = 1e7;
+            let lowestNode = {};
+            open.forEach((rawNode) => {
+                const node = keyToVector2(rawNode);
+                const cost = heuristic(curNode, to) + pathCost(curNode, node);
+                if (cost < lowestCost) {
+                    lowestCost = cost;
+                    lowestNode = node;
+                }
+            })
+            return lowestNode;
+        }
+        let lowestScored = curNode;
+        let lowestScoredKey = vector2ToTileKey(lowestScored);
+        const goalKey = vector2ToTileKey(to);
+        while (lowestScoredKey != goalKey) {
+            // mark node as closed
+            open.delete(lowestScoredKey);
+            closed.delete(lowestScoredKey);
+
+            getAdjacentTiles(curNode).forEach((neighbor) => { // node is a vector2
+                const neighborKey = vector2ToTileKey(neighbor);
+                const cost = heuristic(curNode, to) + pathCost(curNode, neighbor);
+
+                const neighborInOpen = open.has(neighborKey);
+                const neighborInClosed = closed.has(neighborKey);
+
+                if (neighborInOpen && cost < heuristic(neighbor, to)) {
+                    // remove neighbor from open; new path better
+                    open.delete(neighborKey);
+                }
+                if (neighborInClosed && cost < heuristic(neighbor, to)) {
+                    closed.delete(neighborKey);
+                }
+                if (neighborInOpen && neighborInClosed) {
+                    //x
+                }
+            })
+        }
+    }
+
     Object.defineProperty(object, "finished", {
         get() { return finished; }
     });
@@ -166,7 +263,7 @@ export function Level(main, player, filePath = "welcome.w95") {
     })
     Object.assign(object, {
         checkIntersection, checkTriggerIntersection, update, raycast,
-        vector2ToTileKey, keyToVector2
+        vector2ToTileKey, keyToVector2, checkTileTraversable
     })
     return object;
 }

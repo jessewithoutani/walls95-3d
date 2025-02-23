@@ -10,6 +10,9 @@ import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
 
+THREE.Cache.clear();
+
+
 const renderer = new THREE.WebGLRenderer();
 renderer.setPixelRatio(1.5);
 renderer.setSize(window.innerWidth - 120, window.innerHeight - 120);

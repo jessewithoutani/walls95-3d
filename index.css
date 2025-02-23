@@ -15,6 +15,9 @@ canvas {
     left: 50vw;
     transform: translate(-50%, -50%)
 }
+.unselectable {
+    user-select: none;
+}
 .hidden {
     display: none;
 }
@@ -144,6 +147,24 @@ canvas {
     pointer-events: none;
     animation: move-background 1.2s linear infinite;
     z-index: 999;
+}
+#sniffer-overlay {
+    /* background-color: ; */
+    background-image: 
+        url("./textures/sniffer_indicator.gif"), radial-gradient(circle, transparent 0%, #000 70%);
+    background-size: 500px;
+    image-rendering: pixelated;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 200;
+
+    opacity: 0;
+    /* opacity: 0.5; */
 }
 #damage-overlay {
     background: radial-gradient(circle, transparent 0%, #8f2121 100%);

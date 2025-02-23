@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import * as util from './util.mjs';
 
-const TRANSPARENT_TILES = true;
+// const TRANSPARENT_TILES = true;
+const TRANSPARENT_TILES = false;
 
 const TILE_SIZE = 4;
 
@@ -9,6 +10,7 @@ const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.pn
 const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
 const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
 const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
+const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
 
 
 function inCylinderCollider(position, objectPosition, objectRadius, radius) {
@@ -20,7 +22,7 @@ function inSquareCollider(position, objectPosition, objectHalfLength, radius) {
 }
 
 
-function Tile(collision = false, trigger = false, requiresUpdate = false, enemy = false) {
+function Tile(collision = false, trigger = false, requiresUpdate = false, enemy = false, traversable = false) {
     const object = new THREE.Object3D();
 
     function colliding(position, radius = 0) {
@@ -34,7 +36,7 @@ function Tile(collision = false, trigger = false, requiresUpdate = false, enemy 
     function update(delta) {}
 
     Object.assign(object, {
-        collision, trigger, requiresUpdate, enemy,
+        collision, trigger, requiresUpdate, enemy, traversable,
         colliding, inTrigger, awake, update
     });
     return object;
@@ -90,7 +92,7 @@ function NormalWallBlock() {
     return object;
 }
 function Bob() {
-    const object = new Tile(true, true, true); object.name = "ENTITY_BOB";
+    const object = new Tile(true, true, true, false, true); object.name = "ENTITY_BOB";
     let opened = false;
     let sprite;
 
@@ -118,6 +120,45 @@ function Bob() {
             sprite.position.y -= 2.1 * delta;
             if (sprite.position.y <= -4) object.remove(sprite);
         }
+    }
+    
+    object.colliding = colliding;
+    object.inTrigger = inTrigger;
+    object.awake = awake;
+    object.update = update;
+    awake();
+    // object.clone = () => {
+    //     const cloned = Object.create(Object.getPrototypeOf(object), Object.getOwnPropertyDescriptors(object));
+    //     return cloned;
+    // }
+    return object;
+}
+function Martin() {
+    const object = new Tile(true, true, true); object.name = "ENTITY_BOB";
+    let opened = false;
+    let sprite;
+
+    function colliding(position, radius = 0) {
+        return !opened && inSquareCollider(position, object.position, 0.3, radius);
+    }
+
+    function inTrigger(position, radius = 0, player) {
+        if (inSquareCollider(position, object.position, 0.5, radius)) {
+            // opened = true;
+            // sprite.material = bobHappyMaterial;
+            // player.userData.icecream--;
+            return true;
+        }
+        return false;
+    }
+
+    function awake() {
+        sprite = new THREE.Sprite(martinMaterial);
+        object.add(sprite);
+        object.scale.set(4, 4, 4);
+    }
+    function update(delta) {
+        //
     }
     
     object.colliding = colliding;
@@ -209,7 +250,7 @@ function Exit() {
 }
 
 function ItemPedestal(id) {
-    const object = new Tile(true, true, true); object.name = "TILE_PDSTL";
+    const object = new Tile(true, true, true, false, true); object.name = "TILE_PDSTL";
     let item;
     let timeElapsed = 0;
     let collected = false;
@@ -368,7 +409,9 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
     
         if (inSight()) {
             onSightUpdate(delta);
-        } else outOfSightUpdate(delta);
+        } else {
+            outOfSightUpdate(delta);
+        }
     }
 
     function onSightUpdate(delta) {
@@ -400,6 +443,7 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
     object.updateTime = updateTime;
     object.animate = animate;
 
+    object.inSight = inSight;
     object.onSightUpdate = onSightUpdate;
     object.outOfSightUpdate = outOfSightUpdate;
     awake();
@@ -409,26 +453,85 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 
 
 function Sniffer(level, player) {
-    const sniffingRadius = 85;
-    const sniffingSpeed = 5;
-    const chargingSpeed = 7.25;
+    const sniffingRadius = 48;
+    const sniffingSpeed = 8;
+    const chargingSpeed = 8.25;
     const object = new RusherEnemy(level, 
         [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
-        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 500, player, 8, 4, 1000000000);
-    const diagonalCost = Math.sqrt(2);
-    const straightCost = 1;
+        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000000,
+    0.1, 32, 2, 0.6);
 
-    let sniffingSearchNode = false;
+    let pathUpdateTimer = 0;
+    let pathUpdateCooldown = 0.5;
+    let path = [];
 
+    let snifferTraversableNodesSet = new Set([]);
+    let snifferTraversableNodes = [];
+
+    let pathIndicators = [];
+
+    function awake() {
+        object.awake();
+        function getTraversableNodes(floodStart) {
+            snifferTraversableNodesSet.add(level.vector2ToTileKey(floodStart));
+
+            level.getAdjacentTiles(floodStart).forEach((node) => {
+                if (snifferTraversableNodesSet.has(level.vector2ToTileKey(node))) return;
+                getTraversableNodes(node);
+            });
+        }
+        getTraversableNodes(level.worldToTile(object.position));
+        snifferTraversableNodes = Array.from(
+            snifferTraversableNodesSet).map((key) => level.keyToVector2(key));
+    }
+
+    function updatePathIndicators() {
+        pathIndicators.forEach((indicator) => {
+            level.remove(indicator);
+        });
+        pathIndicators = [];
+
+        let previous = null;
+        path.forEach((node) => {
+            const indicator = new THREE.Mesh(
+                new THREE.BoxGeometry(0.5, 0.5, 0.5), 
+                new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+            indicator.position.copy(node);
+            indicator.position.y = 0;
+            level.add(indicator);
+            pathIndicators.push(indicator);
+
+            if (previous) {
+                const line = new THREE.Mesh(
+                    new THREE.BoxGeometry(0.3, 0.3, previous.distanceTo(node)),
+                    new THREE.MeshBasicMaterial({ color: 0xff0000 }));
+                line.position.copy(previous).add(node).divideScalar(2);
+                line.position.y = 0;
+                line.lookAt(node);
+                level.add(line);
+                pathIndicators.push(line);
+            }
+            previous = node;
+        });
+    }
+    function update(delta) {
+        object.updateTime(delta);
+        object.animate(delta);
+    
+        if (object.inSight()) {
+            object.onSightUpdate(delta);
+        } else {
+            outOfSightUpdate(delta);
+        }
+
+        document.getElementById("sniffer-overlay").style.opacity = 
+            Math.max(0.5 - (0.5 / (sniffingRadius / 2)) * player.position.distanceTo(object.position), 0);
+    }
 
     // If in direct line of sight, rush
     // If not but in sniffing radius, slowly pathfind to player
-    function onSightUpdate(delta) {
-        const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
-        moveVector.y = 0;
-        object.move(moveVector);
-    }
     function outOfSightUpdate(delta) {
+        // console.log("hiii")
         const distance = player.position.distanceTo(object.position);
         if (distance <= sniffingRadius) {
             sniffedUpdate(delta);
@@ -437,21 +540,58 @@ function Sniffer(level, player) {
             unsniffedUpdate(delta);
         }
     }
+    
+    function updatePath() {
+        path = level.aStar(level.worldToTile(object.position), 
+            level.worldToTile(player.position));
+        updatePathIndicators();
+    }
+    function moveAlongPath(delta) {
+        if (path.length == 0) return;
+        //                        .clone().sub(object.position).normalize().multiplyScalar(speed * delta);
+        const moveVector = path[0].clone().sub(object.position).normalize().multiplyScalar(sniffingSpeed * delta);
+        moveVector.y = 0;
+        object.move(moveVector);
+
+        let flattenedPosition = object.position.clone(); flattenedPosition.y = 0;
+        let flattenedPathPosition = path[0].clone(); flattenedPathPosition.y = 0;
+
+        if (flattenedPosition.distanceTo(flattenedPathPosition) <= 2) {
+            path.shift();
+        }
+    }
 
     function sniffedUpdate(delta) {
-        //
+        // console.log("i smell you :)");
+        if (pathUpdateTimer >= pathUpdateCooldown) {
+            pathUpdateTimer = 0;
+            updatePath();
+        }
+        else {
+            pathUpdateTimer += delta;
+        }
+
+        moveAlongPath(delta);
     }
     function unsniffedUpdate(delta) {
-        //
+        if (path.length == 0) {
+            // const randomNode = snifferTraversableNodes[Math.floor(Math.random() * snifferTraversableNodes.length)];
+            // path = level.aStar(level.worldToTile(object.position), level.worldToTile(randomNode));
+        }
+        moveAlongPath(delta);
     }
 
-    object.onSightUpdate = onSightUpdate;
+    // object.update = (delta) => { console.log("pee")}
+    object.update = update;
+    // object.onSightUpdate = onSightUpdate;
     object.outOfSightUpdate = outOfSightUpdate;
+    // object.awake = awake;
+    awake();
 
     return object;
 }
 
 export {
     WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot, 
-    RusherEnemy, Sniffer
+    RusherEnemy, Sniffer, Martin
 }

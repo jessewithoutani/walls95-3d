@@ -3,6 +3,7 @@ import * as util from './util.mjs';
 import * as tiles from './tiles.mjs';
 
 const TILE_SIZE = 4;
+const INDICATE_NODES = false;
 
 export function Level(main, player, filePath = "welcome.w95") {
     let object = new THREE.Object3D();
@@ -14,10 +15,13 @@ export function Level(main, player, filePath = "welcome.w95") {
         "M": () => { return new tiles.WallBlock(util.loadTexture("metal.png")); },
         "E": () => { return new tiles.Exit(); },
         "N": () => { return new tiles.NormalWallBlock(); },
+        // "Y": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png", 4, 4)); },
+        "Y": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png")); },
     
         "Md": () => { return new tiles.BlockDoor(util.loadTexture("metal.png")); },
         "Pd": () => { return new tiles.BlockDoor(util.loadTexture("paintingwall.png")); },
         "B": () => { return new tiles.Bob(); },
+        "m": () => { return new tiles.Martin(); },
     
         "d": () => { return new tiles.ItemPedestal("document") },
         "i": () => { return new tiles.ItemPedestal("icecream") },
@@ -55,15 +59,17 @@ export function Level(main, player, filePath = "welcome.w95") {
         traversableNodes.add(vector2ToTileKey(position));
         const indicatorPosition = tileToWorldCenter(position);
         indicatorPosition.y = 0;
-        console.log(indicatorPosition)
-        const indicatorMesh = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 4), new THREE.MeshNormalMaterial);
-        indicatorMesh.position.copy(indicatorPosition);
-        object.add(indicatorMesh);
+        // console.log(indicatorPosition)
+        if (INDICATE_NODES) {
+            const indicatorMesh = new THREE.Mesh(new THREE.SphereGeometry(0.2, 8, 4), new THREE.MeshNormalMaterial);
+            indicatorMesh.position.copy(indicatorPosition);
+            object.add(indicatorMesh);
+        }
     }
     const vector2ToTileKey = JSON.stringify;
     const keyToVector2 = JSON.parse;
     function checkTileTraversable(position) {
-        traversableNodes.has(vector2ToTileKey(position));
+        return traversableNodes.has(vector2ToTileKey(position));
     }
 
     function loadLevel(contents) {
@@ -84,9 +90,14 @@ export function Level(main, player, filePath = "welcome.w95") {
                     if (newTile.collision) {
                         if (newTile.enemy) {
                             enemyColliders.push(newTile);
+                            createTraversableNode(new THREE.Vector2(x, z));
                         }
                         else {
                             colliders.push(newTile);
+                        }
+
+                        if (newTile.traversable) {
+                            createTraversableNode(new THREE.Vector2(x, z));
                         }
                     }
                     if (newTile.trigger) triggers.push(newTile);
@@ -161,18 +172,21 @@ export function Level(main, player, filePath = "welcome.w95") {
     // ===============================================
     // PATHFINDING STUFF
     const STRAIGHT_COST = 1;
-    const DIAGONAL_COST = sqrt(2);
+    const DIAGONAL_COST = Math.sqrt(2);
     const P = 1 / 1000; // (min cost of taking one step) / (max expected path length)
 
-    function heuristic(from, to) {
+    function hCost(from, to) { // heuristic
         const dx = Math.abs(from.x - to.x);
         const dy = Math.abs(from.y - to.y);
         return STRAIGHT_COST * (dx + dy) + (DIAGONAL_COST - 2 * STRAIGHT_COST) * Math.min(dx, dy)
             * (1 + P);
     }
-    function pathCost(from, to) {
+    function gCost(from, to) { // distance from end node
         // this assumes that the differences of the x and y distances are at most 1
         return Math.sqrt(Math.abs(from.x - to.x) + Math.abs(from.y - to.y));
+    }
+    function fCost(from, next, to) {
+        return gCost(from, next) + hCost(next, to);
     }
     function getAdjacentTiles(node) {
         const possibilities = [
@@ -181,21 +195,124 @@ export function Level(main, player, filePath = "welcome.w95") {
             new THREE.Vector2(node.x, node.y + 1),
             new THREE.Vector2(node.x, node.y - 1),
 
-            new THREE.Vector2(node.x + 1, node.y + 1),
-            new THREE.Vector2(node.x + 1, node.y - 1),
-            new THREE.Vector2(node.x - 1, node.y + 1),
-            new THREE.Vector2(node.x - 1, node.y - 1)
+            // new THREE.Vector2(node.x + 1, node.y + 1),
+            // new THREE.Vector2(node.x + 1, node.y - 1),
+            // new THREE.Vector2(node.x - 1, node.y + 1),
+            // new THREE.Vector2(node.x - 1, node.y - 1)
         ];
         const result = [];
         possibilities.forEach((possibility) => {
+            // console.log(vector2ToTileKey(possibility));
+            // console.log(traversableNodes);
             if (checkTileTraversable(possibility)) {
                 result.push(possibility);
             }
-        })
+        });
         return result;
     }
     // https://theory.stanford.edu/~amitp/GameProgramming/ImplementationNotes.html
-    function aStar(object, from, to) {
+    function aStar(from, to, returnWorldPosition = true) {
+        let open = new Map(); // "canidates for examining"
+        let closed = new Map(); // "already examined"
+        open.set(vector2ToTileKey(from), null);
+
+        function lowestCostNode() {
+            let lowestFCost = 1e7;
+            let lowestNode = {};
+            // get lowest cost node
+            open.forEach((nodeParent, rawNode) => {
+                // console.log(rawNode)
+                const node = keyToVector2(rawNode);
+                // const fCost = gCost(from, node) + hCost(node, to);
+                const _fCost = fCost(from, node, to);
+                if (_fCost < lowestFCost) {
+                    lowestFCost = _fCost;
+                    lowestNode = node;
+                }
+            });
+            return lowestNode;
+        }
+
+        let lowestNode;
+        let toKey = vector2ToTileKey(to);
+        let nodeCount = 0;
+        for (let i = 0; i < 1000; i++) {
+            lowestNode = lowestCostNode();
+            const lowestNodeKey = vector2ToTileKey(lowestNode);
+
+            // console.log("poo")
+            nodeCount++;
+            const goalReached = lowestNodeKey == toKey;
+            // console.log(`node: ${lowestNodeKey} : ${toKey}`);
+
+            // close lowest node
+            closed.set(lowestNodeKey, open.get(lowestNodeKey));
+            open.delete(lowestNodeKey);
+
+            getAdjacentTiles(lowestNode).forEach((neighbor) => {
+                const neighborKey = vector2ToTileKey(neighbor);
+                const gCostNeighbor = gCost(from, neighbor);
+                const hCostNeighbor = hCost(neighbor, to);
+                const fCostNeighbor = fCost(from, neighbor, to);
+
+                const neighborInOpen = open.has(neighborKey);
+                const neighborInClosed = closed.has(neighborKey);
+
+                if (!neighborInOpen && !neighborInClosed) { // if unexplored, add to frontier
+                    open.set(neighborKey, lowestNodeKey);
+                }
+            });
+
+            if (goalReached || open.size == 0) {
+                console.log("pathfind end");
+                break;
+            }
+        }
+        console.log(`iterations: ${nodeCount}`);
+
+        // reconstruct path
+        let path = [];
+        let node = to;
+        let nodeKey = vector2ToTileKey(node);
+        while (nodeKey != vector2ToTileKey(from)) {
+            console.log(`${nodeKey} : ${vector2ToTileKey(to)}`);
+            console.log(closed)
+            // console.log(`${nodeKey} : ${vector2ToTileKey(from)}`);
+            // path.push(node);
+            if (returnWorldPosition) {
+                path.unshift(new THREE.Vector3(node.x * TILE_SIZE, 0, node.y * TILE_SIZE));
+            }
+            else {
+                path.unshift(node);
+            }
+            nodeKey = closed.get(nodeKey); // set next node to parent
+            if (!nodeKey) {
+                console.log("end path");
+                break;
+            }
+            node = keyToVector2(nodeKey);
+        }
+        return path;
+    }
+
+    Object.defineProperty(object, "finished", {
+        get() { return finished; }
+    });
+    Object.defineProperty(object, "traversableNodes", {
+        get() { return traversableNodes; }
+    })
+    Object.assign(object, {
+        checkIntersection, checkTriggerIntersection, update, raycast,
+        vector2ToTileKey, keyToVector2, checkTileTraversable, aStar,
+        tileToWorldCenter, worldToTile, tileToWorldCorner, getAdjacentTiles
+    })
+    return object;
+}
+
+
+/*
+
+function aStar(object, from, to) {
         const curNode = tileToWorldCenter(object.position);
         let open = new Set([vector2ToTileKey(curNode)]); // "canidates for examining"
         let closed = new Set([]); // "already examined"
@@ -249,21 +366,14 @@ export function Level(main, player, filePath = "welcome.w95") {
                     closed.delete(neighborKey);
                 }
                 if (neighborInOpen && neighborInClosed) {
-                    //x
+                    // set g(neighbor) to cost
+                    // add neighbor to OPEN
+                    // set priority queue rank to g(neighbor) + h(neighbor)
+                    // set neighbor's parent to current
+                    open.add(neighborKey);
+
                 }
             })
         }
     }
-
-    Object.defineProperty(object, "finished", {
-        get() { return finished; }
-    });
-    Object.defineProperty(object, "traversableNodes", {
-        get() { return traversableNodes; }
-    })
-    Object.assign(object, {
-        checkIntersection, checkTriggerIntersection, update, raycast,
-        vector2ToTileKey, keyToVector2, checkTileTraversable
-    })
-    return object;
-}
+        */

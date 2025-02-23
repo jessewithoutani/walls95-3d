@@ -3,8 +3,10 @@ import * as util from './util.mjs';
 
 // const TRANSPARENT_TILES = true;
 const TRANSPARENT_TILES = false;
+const PATH_INDICATORS = false;
 
 const TILE_SIZE = 4;
+
 
 const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
 const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
@@ -486,6 +488,7 @@ function Sniffer(level, player) {
     }
 
     function updatePathIndicators() {
+        if (!PATH_INDICATORS) return;
         pathIndicators.forEach((indicator) => {
             level.remove(indicator);
         });

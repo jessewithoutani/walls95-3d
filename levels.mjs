@@ -17,6 +17,10 @@ export function Level(main, player, filePath = "welcome.w95") {
         "N": () => { return new tiles.NormalWallBlock(); },
         // "Y": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png", 4, 4)); },
         "Y": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png")); },
+        "YP": () => { return new tiles.RandomizedWallBlock([
+            util.loadTexture("wallpaper_painting.png"),
+            util.loadTexture("wallpaper_painting2.png"),
+        ])},
     
         "Md": () => { return new tiles.BlockDoor(util.loadTexture("metal.png")); },
         "Pd": () => { return new tiles.BlockDoor(util.loadTexture("paintingwall.png")); },

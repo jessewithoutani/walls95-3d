@@ -76,6 +76,9 @@ function WallBlock(texture) {
     
     return object;
 }
+function RandomizedWallBlock(textures) {
+    return new WallBlock(textures[Math.floor(Math.random() * textures.length)]);
+}
 function NormalWallBlock() {
     const object = new Tile(true); object.name = "TILE_NWB";
 
@@ -595,6 +598,6 @@ function Sniffer(level, player) {
 }
 
 export {
-    WallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot, 
+    WallBlock, RandomizedWallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot, 
     RusherEnemy, Sniffer, Martin
 }

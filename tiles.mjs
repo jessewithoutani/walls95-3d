@@ -13,6 +13,7 @@ const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob
 const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
 const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
 const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
+const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });
 
 
 function inCylinderCollider(position, objectPosition, objectRadius, radius) {
@@ -144,7 +145,7 @@ function Martin(player) {
     let sprite;
 
     let cooldownTimer = 0;
-    let cooldown = 1.5;
+    let cooldown = 3.5;
 
     function colliding(position, radius = 0) {
         // return !opened && inSquareCollider(position, object.position, 0.3, radius);
@@ -170,6 +171,8 @@ function Martin(player) {
         object.scale.set(4, 4, 4);
     }
     function update(delta) {
+        sprite.material = (cooldownTimer > 0) ? martinInactiveMaterial : martinMaterial;
+
         sprite.visible = !(player.userData.hiding
             && inSquareCollider(player.position, object.position, 0.5, 0));
 

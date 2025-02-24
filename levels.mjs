@@ -25,7 +25,7 @@ export function Level(main, player, filePath = "welcome.w95") {
         "Md": () => { return new tiles.BlockDoor(util.loadTexture("metal.png")); },
         "Pd": () => { return new tiles.BlockDoor(util.loadTexture("paintingwall.png")); },
         "B": () => { return new tiles.Bob(); },
-        "m": () => { return new tiles.Martin(); },
+        "m": () => { return new tiles.Martin(player); },
     
         "d": () => { return new tiles.ItemPedestal("document") },
         "i": () => { return new tiles.ItemPedestal("icecream") },

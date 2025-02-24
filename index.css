@@ -182,6 +182,17 @@ canvas {
     pointer-events: none;
     z-index: 900;
 }
+#hiding-overlay {
+    background-image: url("./textures/hiding_overlay.png"), radial-gradient(circle, transparent 0%, #000 100%);
+    background-size: cover;
+    background-position: center;
+    image-rendering: pixelated;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 902;
+}
 #crosshair {
     width: 64px;
     height: 64px;

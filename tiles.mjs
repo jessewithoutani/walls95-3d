@@ -138,20 +138,27 @@ function Bob() {
     // }
     return object;
 }
-function Martin() {
-    const object = new Tile(true, true, true); object.name = "ENTITY_BOB";
-    let opened = false;
+function Martin(player) {
+    const object = new Tile(true, true, true, false, true); object.name = "ENTITY_BOB";
+    let previouslyHidden = false;
     let sprite;
 
+    let cooldownTimer = 0;
+    let cooldown = 1.5;
+
     function colliding(position, radius = 0) {
-        return !opened && inSquareCollider(position, object.position, 0.3, radius);
+        // return !opened && inSquareCollider(position, object.position, 0.3, radius);
+        return false;
     }
 
     function inTrigger(position, radius = 0, player) {
+        if (cooldownTimer > 0) return false;
+
         if (inSquareCollider(position, object.position, 0.5, radius)) {
-            // opened = true;
-            // sprite.material = bobHappyMaterial;
-            // player.userData.icecream--;
+            cooldownTimer = cooldown;
+            player.userData.hiding = true;
+            player.position.copy(object.position);
+            player.position.y = 0;
             return true;
         }
         return false;
@@ -163,7 +170,11 @@ function Martin() {
         object.scale.set(4, 4, 4);
     }
     function update(delta) {
-        //
+        sprite.visible = !(player.userData.hiding
+            && inSquareCollider(player.position, object.position, 0.5, 0));
+
+        cooldownTimer -= delta;
+        previouslyHidden = player.userData.hiding;
     }
     
     object.colliding = colliding;
@@ -358,7 +369,13 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
         return !dead && inCylinderCollider(position, object.position, _radius, radius);
     }
 
+    function canAttack() {
+        return !player.userData.hiding
+    }
+
     function inTrigger(position, radius = 0, _player) {
+        if (!canAttack()) return;
+        
         const _inTrigger = !dead && inCylinderCollider(position, object.position, attackRadius, radius);
         if (_player && _inTrigger && timeSinceLastAttack >= cooldown) {
             _player.userData.health -= damage;
@@ -378,7 +395,10 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 
     function inSight() {
         const distance = player.position.distanceTo(object.position);
-        return !dead && distance >= 0.5 && distance <= detectionRadius && level.raycast(object.position, player.position) == null;
+        
+        return !player.userData.hiding && !dead &&
+            distance >= 0.5 && distance <= detectionRadius && 
+            level.raycast(object.position, player.position) == null;
     }
 
     function updateTime(delta) {
@@ -448,6 +468,7 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
     object.updateTime = updateTime;
     object.animate = animate;
 
+    object.canAttack = canAttack;
     object.inSight = inSight;
     object.onSightUpdate = onSightUpdate;
     object.outOfSightUpdate = outOfSightUpdate;
@@ -524,7 +545,7 @@ function Sniffer(level, player) {
         object.updateTime(delta);
         object.animate(delta);
     
-        if (object.inSight()) {
+        if (object.inSight() && !player.userData.hiding) {
             object.onSightUpdate(delta);
         } else {
             outOfSightUpdate(delta);
@@ -539,7 +560,7 @@ function Sniffer(level, player) {
     function outOfSightUpdate(delta) {
         // console.log("hiii")
         const distance = player.position.distanceTo(object.position);
-        if (distance <= sniffingRadius) {
+        if (distance <= sniffingRadius && !player.userData.hiding) {
             sniffedUpdate(delta);
         }
         else {
@@ -591,7 +612,6 @@ function Sniffer(level, player) {
     object.update = update;
     // object.onSightUpdate = onSightUpdate;
     object.outOfSightUpdate = outOfSightUpdate;
-    // object.awake = awake;
     awake();
 
     return object;

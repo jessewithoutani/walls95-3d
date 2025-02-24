@@ -37,6 +37,9 @@ let timeSinceLastShot = 999;
 
 let theta = 0;
 
+let hidingOverlay;
+let hiddenWhenHiding = [];
+
 // POST PROCESSING
 
 // const composer = new EffectComposer(renderer);
@@ -82,6 +85,7 @@ function setupPlayer() {
     player.position.set(0, 0, 0);
     scene.add(player);
     player.add(camera);
+    player.userData.hiding = false;
     player.userData.health = 5;
     controls = new PointerLockControls(camera, document.body);
     controls.pointerSpeed = 0.6;
@@ -101,8 +105,11 @@ function setupPlayer() {
         controls.lock();
     });
 
-    controls.lock();
+    // controls.lock();
     player.name = "PLAYER";
+
+    hidingOverlay = document.getElementById("hiding-overlay");
+    hiddenWhenHiding = document.querySelectorAll(".viewmodel, .viewmodel-orb, #dataviewer, #crosshair");
 }
 let level = undefined;
 let projectiles = [];
@@ -147,6 +154,9 @@ window.onkeydown = function(event) {
     if (event.key == "e") {
         window.onmousedown();
     }
+    if (event.key == " ") {
+        player.userData.hiding = false;
+    }
     pressedKeys[event.key] = true;
 }
 window.onmousedown = function(event) {
@@ -177,6 +187,11 @@ function updatePlayer(delta) {
     if (pressedKeys.a || pressedKeys.A) strafeMovement--;
     if (pressedKeys.d || pressedKeys.D) strafeMovement++;
 
+    if (player.userData.hiding) {
+        walkMovement = 0;
+        strafeMovement = 0;
+    }
+
     theta = camera.rotation.y;
     const walkVector = new THREE.Vector3(
         Math.sin(theta), 0, Math.cos(theta)); walkVector.multiplyScalar(WALK_SPEED * delta * -walkMovement);
@@ -199,6 +214,23 @@ function updatePlayer(delta) {
     player.position.add(moveZ);
     if (level.checkIntersection(player.position, PLAYER_RADIUS)) {
         player.position.sub(moveZ);
+    }
+}
+
+function updateHiding(delta) {
+    hiddenWhenHiding.forEach((element) => {
+        if (player.userData.hiding) {
+            element.classList.add("hidden");
+        }
+        else {
+            element.classList.remove("hidden");
+        }
+    });
+    if (player.userData.hiding) {
+        hidingOverlay.classList.remove("hidden");
+    }
+    else {
+        hidingOverlay.classList.add("hidden");
     }
 }
 
@@ -278,6 +310,7 @@ function update() {
 
     // update stuff
     updatePlayer(delta);
+    updateHiding(delta);
     level.update(delta);
     updateProjectiles(delta, theta);
     camera.updateProjectionMatrix();

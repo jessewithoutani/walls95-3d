@@ -140,7 +140,7 @@ function Bob() {
     return object;
 }
 function Martin(player) {
-    const object = new Tile(true, true, true, false, true); object.name = "ENTITY_BOB";
+    const object = new Tile(true, true, true, false, false); object.name = "ENTITY_BOB";
     let previouslyHidden = false;
     let sprite;
 

@@ -483,11 +483,11 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 
 function Sniffer(level, player) {
     const sniffingRadius = 48;
-    const sniffingSpeed = 8;
-    const chargingSpeed = 8.25;
+    const sniffingSpeed = 7.2;
+    const chargingSpeed = 8;
     const object = new RusherEnemy(level, 
         [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
-        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000000,
+        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000,
     0.1, 32, 2, 0.6);
 
     let pathUpdateTimer = 0;
@@ -498,20 +498,22 @@ function Sniffer(level, player) {
     let snifferTraversableNodes = [];
 
     let pathIndicators = [];
+    
+    let tilePlane = new THREE.Mesh(new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
+        new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+
+    function getSpeedMultiplier() {
+        let documentsCollected = 0;
+        if (player.userData["document"]) {
+            documentsCollected = player.userData["document"];
+        }
+        return 1 + 0.6 / (1 + Math.E ** (-0.5 * documentsCollected));
+    }
 
     function awake() {
         object.awake();
-        function getTraversableNodes(floodStart) {
-            snifferTraversableNodesSet.add(level.vector2ToTileKey(floodStart));
 
-            level.getAdjacentTiles(floodStart).forEach((node) => {
-                if (snifferTraversableNodesSet.has(level.vector2ToTileKey(node))) return;
-                getTraversableNodes(node);
-            });
-        }
-        getTraversableNodes(level.worldToTile(object.position));
-        snifferTraversableNodes = Array.from(
-            snifferTraversableNodesSet).map((key) => level.keyToVector2(key));
+        if (PATH_INDICATORS) level.add(tilePlane);
     }
 
     function updatePathIndicators() {
@@ -522,6 +524,7 @@ function Sniffer(level, player) {
         pathIndicators = [];
 
         let previous = null;
+
         path.forEach((node) => {
             const indicator = new THREE.Mesh(
                 new THREE.BoxGeometry(0.5, 0.5, 0.5), 
@@ -544,18 +547,51 @@ function Sniffer(level, player) {
             previous = node;
         });
     }
+    function updateNodeIndicator() {
+        if (!PATH_INDICATORS) return;
+
+        tilePlane.position.copy(level.tileToWorldCenter(level.worldToTile(object.position)));
+        tilePlane.rotation.x = -Math.PI / 2;
+        tilePlane.position.y = 0.02;
+    }
     function update(delta) {
+        updateNodeIndicator();
+
+        if (snifferTraversableNodes.length == 0) {
+            function getTraversableNodes(floodStart) {
+                snifferTraversableNodesSet.add(level.vector2ToTileKey(floodStart));
+    
+                level.getAdjacentTiles(floodStart).forEach((node) => {
+                    const nodeKey = level.vector2ToTileKey(node);
+                    // alert(nodeKey)
+                    if (snifferTraversableNodesSet.has(nodeKey)) return;
+                    getTraversableNodes(node);
+                });
+            }
+            getTraversableNodes(level.worldToTile(object.position));
+            snifferTraversableNodes = Array.from(
+                snifferTraversableNodesSet).map((key) => level.keyToVector2(key));
+            // alert(JSON.stringify(snifferTraversableNodes));
+        }
+
         object.updateTime(delta);
         object.animate(delta);
     
         if (object.inSight() && !player.userData.hiding) {
-            object.onSightUpdate(delta);
+            onSightUpdate(delta);
         } else {
             outOfSightUpdate(delta);
         }
 
         document.getElementById("sniffer-overlay").style.opacity = 
             Math.max(0.5 - (0.5 / (sniffingRadius / 2)) * player.position.distanceTo(object.position), 0);
+    }
+
+    function onSightUpdate(delta) {
+        const moveVector = player.position.clone().sub(object.position).normalize()
+            .multiplyScalar(speed * delta * getSpeedMultiplier());
+        moveVector.y = 0;
+        object.move(moveVector);
     }
 
     // If in direct line of sight, rush
@@ -578,8 +614,8 @@ function Sniffer(level, player) {
     }
     function moveAlongPath(delta) {
         if (path.length == 0) return;
-        //                        .clone().sub(object.position).normalize().multiplyScalar(speed * delta);
-        const moveVector = path[0].clone().sub(object.position).normalize().multiplyScalar(sniffingSpeed * delta);
+        const moveVector = path[0].clone().sub(object.position).normalize()
+            .multiplyScalar(sniffingSpeed * delta * getSpeedMultiplier());
         moveVector.y = 0;
         object.move(moveVector);
 
@@ -605,8 +641,11 @@ function Sniffer(level, player) {
     }
     function unsniffedUpdate(delta) {
         if (path.length == 0) {
-            // const randomNode = snifferTraversableNodes[Math.floor(Math.random() * snifferTraversableNodes.length)];
-            // path = level.aStar(level.worldToTile(object.position), level.worldToTile(randomNode));
+            // const randomNode = 
+            //     snifferTraversableNodes[Math.floor(Math.random() * snifferTraversableNodes.length)];
+            // // alert(JSON.stringify(randomNode));
+            // path = level.aStar(level.worldToTile(object.position), randomNode);
+            updatePathIndicators();
         }
         moveAlongPath(delta);
     }

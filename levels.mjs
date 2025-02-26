@@ -164,7 +164,8 @@ export function Level(main, player, filePath = "welcome.w95") {
     }
 
     function worldToTile(position) {
-        return new THREE.Vector2(Math.floor(position.x / TILE_SIZE), Math.floor(position.z / TILE_SIZE));
+        return new THREE.Vector2(Math.floor(position.x / TILE_SIZE), 
+            Math.floor(position.z / TILE_SIZE));
     }
     function tileToWorldCenter(position) {
         return new THREE.Vector3(position.x * TILE_SIZE, 0, position.y * TILE_SIZE);

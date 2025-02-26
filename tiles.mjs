@@ -482,9 +482,11 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 
 
 function Sniffer(level, player) {
-    const sniffingRadius = 48;
-    const sniffingSpeed = 7.2;
-    const chargingSpeed = 8;
+    const multiplierThing = 0.7;
+
+    const sniffingRadius = 48; // * 2
+    const sniffingSpeed = 6; // * 8
+    const chargingSpeed = 6.7; // * 0.75
     const object = new RusherEnemy(level, 
         [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
         util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000,
@@ -507,7 +509,8 @@ function Sniffer(level, player) {
         if (player.userData["document"]) {
             documentsCollected = player.userData["document"];
         }
-        return 1 + 0.6 / (1 + Math.E ** (-0.5 * documentsCollected));
+
+        return (1 - multiplierThing / 2) + multiplierThing / (1 + Math.E ** (-0.5 * documentsCollected));
     }
 
     function awake() {
@@ -555,6 +558,7 @@ function Sniffer(level, player) {
         tilePlane.position.y = 0.02;
     }
     function update(delta) {
+        console.log(getSpeedMultiplier())
         updateNodeIndicator();
 
         if (snifferTraversableNodes.length == 0) {
@@ -589,7 +593,7 @@ function Sniffer(level, player) {
 
     function onSightUpdate(delta) {
         const moveVector = player.position.clone().sub(object.position).normalize()
-            .multiplyScalar(speed * delta * getSpeedMultiplier());
+            .multiplyScalar(chargingSpeed * delta * getSpeedMultiplier());
         moveVector.y = 0;
         object.move(moveVector);
     }
@@ -641,10 +645,10 @@ function Sniffer(level, player) {
     }
     function unsniffedUpdate(delta) {
         if (path.length == 0) {
-            // const randomNode = 
-            //     snifferTraversableNodes[Math.floor(Math.random() * snifferTraversableNodes.length)];
-            // // alert(JSON.stringify(randomNode));
-            // path = level.aStar(level.worldToTile(object.position), randomNode);
+            const randomNode = 
+                snifferTraversableNodes[Math.floor(Math.random() * snifferTraversableNodes.length)];
+            // alert(JSON.stringify(randomNode));
+            path = level.aStar(level.worldToTile(object.position), randomNode);
             updatePathIndicators();
         }
         moveAlongPath(delta);

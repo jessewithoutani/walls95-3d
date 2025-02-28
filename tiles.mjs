@@ -7,13 +7,18 @@ const PATH_INDICATORS = false;
 
 const TILE_SIZE = 4;
 
-
 const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
 const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
 const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
 const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
 const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
 const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });
+/*const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
+const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
+const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
+const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
+const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
+const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });*/
 
 
 function inCylinderCollider(position, objectPosition, objectRadius, radius) {
@@ -140,12 +145,18 @@ function Bob() {
     return object;
 }
 function Martin(player) {
-    const object = new Tile(true, true, true, false, false); object.name = "ENTITY_BOB";
+    const object = new Tile(true, true, true, false, false); object.name = "ENTITY_MRTN";
+
+    // let damageTimer = 0;
+    const damageCooldown = Math.PI;
+
     let previouslyHidden = false;
     let sprite;
 
     let cooldownTimer = 0;
     let cooldown = 3.5;
+
+    let hiddenInSelf = false;
 
     function colliding(position, radius = 0) {
         // return !opened && inSquareCollider(position, object.position, 0.3, radius);
@@ -153,9 +164,11 @@ function Martin(player) {
     }
 
     function inTrigger(position, radius = 0, player) {
-        if (cooldownTimer > 0) return false;
-
         if (inSquareCollider(position, object.position, 0.5, radius)) {
+            hiddenInSelf = true;
+
+            if (cooldownTimer > 0) return false;
+
             cooldownTimer = cooldown;
             player.userData.hiding = true;
             player.position.copy(object.position);
@@ -176,8 +189,24 @@ function Martin(player) {
         sprite.visible = !(player.userData.hiding
             && inSquareCollider(player.position, object.position, 0.5, 0));
 
+        // IMPORTANT NOTE: assume trigger checking runs before level update
+        if (player.userData.hiding && hiddenInSelf) {
+            if (!previouslyHidden) player.userData.martinDamageTimer = damageCooldown * 1.2;
+
+            if (player.userData.martinDamageTimer <= 0) {
+                // console.log("aergyuerwuguygergugyeiuog")
+                player.userData.health -= 1;
+                player.userData.martinDamageTimer = damageCooldown;
+            }
+            else {
+                player.userData.martinDamageTimer -= delta;
+                console.log("minus")
+            }
+        }
+
         cooldownTimer -= delta;
         previouslyHidden = player.userData.hiding;
+        hiddenInSelf = false;
     }
     
     object.colliding = colliding;
@@ -444,7 +473,7 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 
     function onSightUpdate(delta) {
         const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
-        moveVector.y = 0;
+        moveVector.y = 1;
         move(moveVector);
     }
     function outOfSightUpdate(delta) {
@@ -558,7 +587,7 @@ function Sniffer(level, player) {
         tilePlane.position.y = 0.02;
     }
     function update(delta) {
-        console.log(getSpeedMultiplier())
+        // console.log(getSpeedMultiplier())
         updateNodeIndicator();
 
         if (snifferTraversableNodes.length == 0) {

@@ -308,6 +308,9 @@ function update() {
         dead = true;
         controls.unlock();
         document.querySelector("canvas").remove();
+        setTimeout(() => { document.getElementById("bsod-1").classList.remove("hidden"); }, 100);
+        setTimeout(() => { document.getElementById("bsod-2").classList.remove("hidden"); }, 250);
+        setTimeout(() => { document.getElementById("bsod-3").classList.remove("hidden"); }, 500);
         return;
     }
     else if (player.userData.health != previousHealth) {

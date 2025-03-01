@@ -35,15 +35,18 @@
 
         <div id="death-screen" class="hidden">
             <center style="margin-top: 30vh;">
-                <span style="background: #d2d2d2; padding: 2px 15px; color: #3a1ea9;">Walls 95</span>
+                <span style="background: #d2d2d2; padding: 2px 15px; color: #3a1ea9;"
+                    id="bsod-1" class="hidden">Walls 95</span>
                 <br><br>
-                <div style="width: 700px; text-align: left;">
+                <div style="width: 700px; text-align: left;" id="bsod-2" class="hidden">
                     An error has occurred. To continue:<br><br>
                     You must restart your system. If you do this, you will lose any unsaved information in all open applications.<br><br>
                     Error: SK_ISSUE : 016F : BFF9B3D4<br><br>
                 </div>
                 <br>
-                Press SPACE to continue <span class="blinking">_</span>
+                <span id="bsod-3" class="hidden">
+                    Press SPACE to continue <span class="blinking">_</span>
+                </span>
             </center>
         </div>
         <img src="textures/crosshair.png" id="crosshair">

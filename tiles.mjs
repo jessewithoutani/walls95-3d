@@ -148,7 +148,7 @@ function Martin(player) {
     const object = new Tile(true, true, true, false, false); object.name = "ENTITY_MRTN";
 
     // let damageTimer = 0;
-    const damageCooldown = Math.PI;
+    const damageCooldown = Math.PI * 2.3;
 
     let previouslyHidden = false;
     let sprite;
@@ -191,7 +191,7 @@ function Martin(player) {
 
         // IMPORTANT NOTE: assume trigger checking runs before level update
         if (player.userData.hiding && hiddenInSelf) {
-            if (!previouslyHidden) player.userData.martinDamageTimer = damageCooldown * 1.2;
+            if (!previouslyHidden) player.userData.martinDamageTimer = damageCooldown * 1.5;
 
             if (player.userData.martinDamageTimer <= 0) {
                 // console.log("aergyuerwuguygergugyeiuog")

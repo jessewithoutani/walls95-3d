@@ -231,13 +231,16 @@ function updateHiding(delta) {
     if (player.userData.hiding) {
         hidingOverlay.classList.remove("hidden");
         if (player.userData.martinDamageTimer < 0.5) {
-            hidingOverlay.style.backgroundImage = `url('./textures/hiding_overlay3.png'), ${hidingGradient}`;
+            hidingOverlay.classList.remove("hiding-1");
+            hidingOverlay.classList.add("hiding-2");
         }
         else if (player.userData.martinDamageTimer < 1.25) {
-            hidingOverlay.style.backgroundImage = `url('./textures/hiding_overlay2.png'), ${hidingGradient}`;
+            hidingOverlay.classList.remove("hiding-2");
+            hidingOverlay.classList.add("hiding-1");
         }
         else {
-            hidingOverlay.style.backgroundImage = `url('./textures/hiding_overlay.png'), ${hidingGradient}`;
+            hidingOverlay.classList.remove("hiding-1");
+            hidingOverlay.classList.remove("hiding-2");
         }
     }
     else {

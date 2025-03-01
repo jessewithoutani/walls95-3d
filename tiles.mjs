@@ -7,13 +7,18 @@ const PATH_INDICATORS = false;
 
 const TILE_SIZE = 4;
 
-
 const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
 const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
 const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
 const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
 const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
 const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });
+/*const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
+const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
+const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
+const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
+const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
+const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });*/
 
 
 function inCylinderCollider(position, objectPosition, objectRadius, radius) {
@@ -140,12 +145,18 @@ function Bob() {
     return object;
 }
 function Martin(player) {
-    const object = new Tile(true, true, true, false, false); object.name = "ENTITY_BOB";
+    const object = new Tile(true, true, true, false, false); object.name = "ENTITY_MRTN";
+
+    // let damageTimer = 0;
+    const damageCooldown = Math.PI * 2.3;
+
     let previouslyHidden = false;
     let sprite;
 
     let cooldownTimer = 0;
     let cooldown = 3.5;
+
+    let hiddenInSelf = false;
 
     function colliding(position, radius = 0) {
         // return !opened && inSquareCollider(position, object.position, 0.3, radius);
@@ -153,9 +164,11 @@ function Martin(player) {
     }
 
     function inTrigger(position, radius = 0, player) {
-        if (cooldownTimer > 0) return false;
-
         if (inSquareCollider(position, object.position, 0.5, radius)) {
+            hiddenInSelf = true;
+
+            if (cooldownTimer > 0) return false;
+
             cooldownTimer = cooldown;
             player.userData.hiding = true;
             player.position.copy(object.position);
@@ -176,8 +189,24 @@ function Martin(player) {
         sprite.visible = !(player.userData.hiding
             && inSquareCollider(player.position, object.position, 0.5, 0));
 
+        // IMPORTANT NOTE: assume trigger checking runs before level update
+        if (player.userData.hiding && hiddenInSelf) {
+            if (!previouslyHidden) player.userData.martinDamageTimer = damageCooldown * 1.5;
+
+            if (player.userData.martinDamageTimer <= 0) {
+                // console.log("aergyuerwuguygergugyeiuog")
+                player.userData.health -= 1;
+                player.userData.martinDamageTimer = damageCooldown;
+            }
+            else {
+                player.userData.martinDamageTimer -= delta;
+                console.log("minus")
+            }
+        }
+
         cooldownTimer -= delta;
         previouslyHidden = player.userData.hiding;
+        hiddenInSelf = false;
     }
     
     object.colliding = colliding;
@@ -444,7 +473,7 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 
     function onSightUpdate(delta) {
         const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
-        moveVector.y = 0;
+        moveVector.y = 1;
         move(moveVector);
     }
     function outOfSightUpdate(delta) {
@@ -482,12 +511,14 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 
 
 function Sniffer(level, player) {
-    const sniffingRadius = 48;
-    const sniffingSpeed = 8;
-    const chargingSpeed = 8.25;
+    const multiplierThing = 0.7;
+
+    const sniffingRadius = 48; // * 2
+    const sniffingSpeed = 6; // * 8
+    const chargingSpeed = 6.7; // * 0.75
     const object = new RusherEnemy(level, 
         [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
-        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000000,
+        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000,
     0.1, 32, 2, 0.6);
 
     let pathUpdateTimer = 0;
@@ -498,20 +529,23 @@ function Sniffer(level, player) {
     let snifferTraversableNodes = [];
 
     let pathIndicators = [];
+    
+    let tilePlane = new THREE.Mesh(new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
+        new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
+
+    function getSpeedMultiplier() {
+        let documentsCollected = 0;
+        if (player.userData["document"]) {
+            documentsCollected = player.userData["document"];
+        }
+
+        return (1 - multiplierThing / 2) + multiplierThing / (1 + Math.E ** (-0.5 * documentsCollected));
+    }
 
     function awake() {
         object.awake();
-        function getTraversableNodes(floodStart) {
-            snifferTraversableNodesSet.add(level.vector2ToTileKey(floodStart));
 
-            level.getAdjacentTiles(floodStart).forEach((node) => {
-                if (snifferTraversableNodesSet.has(level.vector2ToTileKey(node))) return;
-                getTraversableNodes(node);
-            });
-        }
-        getTraversableNodes(level.worldToTile(object.position));
-        snifferTraversableNodes = Array.from(
-            snifferTraversableNodesSet).map((key) => level.keyToVector2(key));
+        if (PATH_INDICATORS) level.add(tilePlane);
     }
 
     function updatePathIndicators() {
@@ -522,6 +556,7 @@ function Sniffer(level, player) {
         pathIndicators = [];
 
         let previous = null;
+
         path.forEach((node) => {
             const indicator = new THREE.Mesh(
                 new THREE.BoxGeometry(0.5, 0.5, 0.5), 
@@ -544,18 +579,52 @@ function Sniffer(level, player) {
             previous = node;
         });
     }
+    function updateNodeIndicator() {
+        if (!PATH_INDICATORS) return;
+
+        tilePlane.position.copy(level.tileToWorldCenter(level.worldToTile(object.position)));
+        tilePlane.rotation.x = -Math.PI / 2;
+        tilePlane.position.y = 0.02;
+    }
     function update(delta) {
+        // console.log(getSpeedMultiplier())
+        updateNodeIndicator();
+
+        if (snifferTraversableNodes.length == 0) {
+            function getTraversableNodes(floodStart) {
+                snifferTraversableNodesSet.add(level.vector2ToTileKey(floodStart));
+    
+                level.getAdjacentTiles(floodStart).forEach((node) => {
+                    const nodeKey = level.vector2ToTileKey(node);
+                    // alert(nodeKey)
+                    if (snifferTraversableNodesSet.has(nodeKey)) return;
+                    getTraversableNodes(node);
+                });
+            }
+            getTraversableNodes(level.worldToTile(object.position));
+            snifferTraversableNodes = Array.from(
+                snifferTraversableNodesSet).map((key) => level.keyToVector2(key));
+            // alert(JSON.stringify(snifferTraversableNodes));
+        }
+
         object.updateTime(delta);
         object.animate(delta);
     
         if (object.inSight() && !player.userData.hiding) {
-            object.onSightUpdate(delta);
+            onSightUpdate(delta);
         } else {
             outOfSightUpdate(delta);
         }
 
         document.getElementById("sniffer-overlay").style.opacity = 
             Math.max(0.5 - (0.5 / (sniffingRadius / 2)) * player.position.distanceTo(object.position), 0);
+    }
+
+    function onSightUpdate(delta) {
+        const moveVector = player.position.clone().sub(object.position).normalize()
+            .multiplyScalar(chargingSpeed * delta * getSpeedMultiplier());
+        moveVector.y = 0;
+        object.move(moveVector);
     }
 
     // If in direct line of sight, rush
@@ -578,8 +647,8 @@ function Sniffer(level, player) {
     }
     function moveAlongPath(delta) {
         if (path.length == 0) return;
-        //                        .clone().sub(object.position).normalize().multiplyScalar(speed * delta);
-        const moveVector = path[0].clone().sub(object.position).normalize().multiplyScalar(sniffingSpeed * delta);
+        const moveVector = path[0].clone().sub(object.position).normalize()
+            .multiplyScalar(sniffingSpeed * delta * getSpeedMultiplier());
         moveVector.y = 0;
         object.move(moveVector);
 
@@ -605,8 +674,11 @@ function Sniffer(level, player) {
     }
     function unsniffedUpdate(delta) {
         if (path.length == 0) {
-            // const randomNode = snifferTraversableNodes[Math.floor(Math.random() * snifferTraversableNodes.length)];
-            // path = level.aStar(level.worldToTile(object.position), level.worldToTile(randomNode));
+            const randomNode = 
+                snifferTraversableNodes[Math.floor(Math.random() * snifferTraversableNodes.length)];
+            // alert(JSON.stringify(randomNode));
+            path = level.aStar(level.worldToTile(object.position), randomNode);
+            updatePathIndicators();
         }
         moveAlongPath(delta);
     }

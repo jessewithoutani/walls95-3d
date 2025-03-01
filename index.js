@@ -38,6 +38,7 @@ let timeSinceLastShot = 999;
 let theta = 0;
 
 let hidingOverlay;
+const hidingGradient = "radial-gradient(circle, transparent 0%, #000 100%)";
 let hiddenWhenHiding = [];
 
 // POST PROCESSING
@@ -86,6 +87,7 @@ function setupPlayer() {
     scene.add(player);
     player.add(camera);
     player.userData.hiding = false;
+    player.userData.martinDamageTimer = 0;
     player.userData.health = 5;
     controls = new PointerLockControls(camera, document.body);
     controls.pointerSpeed = 0.6;
@@ -109,7 +111,7 @@ function setupPlayer() {
     player.name = "PLAYER";
 
     hidingOverlay = document.getElementById("hiding-overlay");
-    hiddenWhenHiding = document.querySelectorAll(".viewmodel, .viewmodel-orb, #dataviewer, #crosshair");
+    hiddenWhenHiding = document.querySelectorAll(".viewmodel, .viewmodel-orb, #crosshair");
 }
 let level = undefined;
 let projectiles = [];
@@ -228,6 +230,18 @@ function updateHiding(delta) {
     });
     if (player.userData.hiding) {
         hidingOverlay.classList.remove("hidden");
+        if (player.userData.martinDamageTimer < 0.5) {
+            hidingOverlay.classList.remove("hiding-1");
+            hidingOverlay.classList.add("hiding-2");
+        }
+        else if (player.userData.martinDamageTimer < 1.25) {
+            hidingOverlay.classList.remove("hiding-2");
+            hidingOverlay.classList.add("hiding-1");
+        }
+        else {
+            hidingOverlay.classList.remove("hiding-1");
+            hidingOverlay.classList.remove("hiding-2");
+        }
     }
     else {
         hidingOverlay.classList.add("hidden");

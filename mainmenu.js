@@ -11,7 +11,7 @@ const windowPresets = {
             <hr />
             Welcome! Please select what you would like to do today:
             <br /><br />
-            <button onclick="openLevel('welcome.w95')">Tutorial [lvl 1]</button>
+            <button onclick="openLevel('welcome.w95')" disabled>Tutorial [lvl 1]</button>
             <button onclick="openLevel('testing.w95')">Recover my files [???]</button>`
     },
     "iexplore": {
@@ -33,7 +33,13 @@ const windowPresets = {
                     </form>
                 </center>
             </div>`
-    }
+    },
+    "credits": {
+        title: "Credits",
+        content: `
+            The entire game - me<br />
+            Made with <a href="https://threejs.org/">Three.JS</a>`
+    },
 }
 
 function startTimeUpdates() {

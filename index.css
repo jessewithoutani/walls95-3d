@@ -345,6 +345,7 @@ input {
 }
 #startup-overlay-1, #startup-overlay-2 {
     background: #111;
+    color: #fff;
     position: fixed;
     width: 100vw;
     height: 100vh;

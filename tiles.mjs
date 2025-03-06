@@ -148,7 +148,7 @@ function Martin(player) {
     const object = new Tile(true, true, true, false, false); object.name = "ENTITY_MRTN";
 
     // let damageTimer = 0;
-    const damageCooldown = Math.PI * 2.3;
+    const damageCooldown = Math.PI * 1.75;
 
     let previouslyHidden = false;
     let sprite;
@@ -472,8 +472,9 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
     }
 
     function onSightUpdate(delta) {
-        const moveVector = player.position.clone().sub(object.position).normalize().multiplyScalar(speed * delta);
-        moveVector.y = 1;
+        let moveVector = player.position.clone().sub(object.position);
+        moveVector.y = 0;
+        moveVector = moveVector.normalize().multiplyScalar(speed * delta);
         move(moveVector);
     }
     function outOfSightUpdate(delta) {
@@ -514,8 +515,8 @@ function Sniffer(level, player) {
     const multiplierThing = 0.7;
 
     const sniffingRadius = 48; // * 2
-    const sniffingSpeed = 6; // * 8
-    const chargingSpeed = 6.7; // * 0.75
+    const sniffingSpeed = 5.25; // * 8
+    const chargingSpeed = 6; // * 0.75
     const object = new RusherEnemy(level, 
         [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
         util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000,
@@ -621,9 +622,9 @@ function Sniffer(level, player) {
     }
 
     function onSightUpdate(delta) {
-        const moveVector = player.position.clone().sub(object.position).normalize()
-            .multiplyScalar(chargingSpeed * delta * getSpeedMultiplier());
+        let moveVector = player.position.clone().sub(object.position);
         moveVector.y = 0;
+        moveVector = moveVector.normalize().multiplyScalar(chargingSpeed * delta * getSpeedMultiplier());
         object.move(moveVector);
     }
 
@@ -647,9 +648,9 @@ function Sniffer(level, player) {
     }
     function moveAlongPath(delta) {
         if (path.length == 0) return;
-        const moveVector = path[0].clone().sub(object.position).normalize()
-            .multiplyScalar(sniffingSpeed * delta * getSpeedMultiplier());
+        let moveVector = path[0].clone().sub(object.position);
         moveVector.y = 0;
+        moveVector = moveVector.normalize().multiplyScalar(sniffingSpeed * delta * getSpeedMultiplier());
         object.move(moveVector);
 
         let flattenedPosition = object.position.clone(); flattenedPosition.y = 0;

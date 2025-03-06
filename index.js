@@ -234,7 +234,7 @@ function updateHiding(delta) {
             hidingOverlay.classList.remove("hiding-1");
             hidingOverlay.classList.add("hiding-2");
         }
-        else if (player.userData.martinDamageTimer < 1.25) {
+        else if (player.userData.martinDamageTimer < 1.75) {
             hidingOverlay.classList.remove("hiding-2");
             hidingOverlay.classList.add("hiding-1");
         }
@@ -301,13 +301,16 @@ function update() {
     }
 
     player.userData.health = util.clamp(player.userData.health, 0, MAX_HEALTH);
-    damageOverlayTransparency = util.lerp(damageOverlayTransparency, (1 - player.userData.health / MAX_HEALTH) * 0.6, 0.35);
+    damageOverlayTransparency = util.lerp(damageOverlayTransparency, (1 - player.userData.health / MAX_HEALTH) * 0.6, 0.075);
     healOverlayTransparency *= 0.8;
     if (player.userData.health <= 0) {
         document.getElementById("death-screen").classList.remove("hidden");
         dead = true;
         controls.unlock();
         document.querySelector("canvas").remove();
+        setTimeout(() => { document.getElementById("bsod-1").classList.remove("hidden"); }, 100);
+        setTimeout(() => { document.getElementById("bsod-2").classList.remove("hidden"); }, 250);
+        setTimeout(() => { document.getElementById("bsod-3").classList.remove("hidden"); }, 500);
         return;
     }
     else if (player.userData.health != previousHealth) {

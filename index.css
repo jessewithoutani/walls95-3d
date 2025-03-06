@@ -15,6 +15,16 @@ canvas {
     left: 50vw;
     transform: translate(-50%, -50%)
 }
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 400;
+}
+img {
+    image-rendering: pixelated;
+}
+hr {
+    border-color: #555;
+    opacity: 0.5;
+}
 .unselectable {
     user-select: none;
 }
@@ -24,7 +34,6 @@ canvas {
 .viewmodel {
     height: 100vh;
     width: 100vh;
-    image-rendering: pixelated;
     position: fixed;
     top: 0vh;
     left: 50vw;
@@ -35,7 +44,7 @@ canvas {
 .viewmodel-orb {
     height: 25vh;
     width: 25vh;
-    image-rendering: pixelated;
+    
     position: fixed;
     top: 50vh;
     left: 50vw;
@@ -47,7 +56,7 @@ canvas {
 .icon {
     height: 48px;
     width: 48px;
-    image-rendering: pixelated;
+    
     filter: drop-shadow(7px 7px 0px rgba(0, 0, 0, 0.5));
 }
 @keyframes bob {
@@ -144,6 +153,8 @@ canvas {
     position: fixed;
     width: 100vw;
     height: 100vh;
+    top: 0px;
+    left: 0px;
     pointer-events: none;
     animation: move-background 1.2s linear infinite;
     z-index: 6748476876;
@@ -206,7 +217,6 @@ canvas {
 #crosshair {
     width: 64px;
     height: 64px;
-    image-rendering: pixelated;
     position: fixed;
     left: 50vw;
     top: 50vh;
@@ -219,4 +229,141 @@ canvas {
 }
 .blinking {
     animation: blink 0.7s linear infinite;
+}
+
+.desktop {
+    background: #5b847c;
+    /* background-image: url("./textures/wallpaper_painting.png"); */
+    /* image-rendering: pixelated; */
+    /* background-position: center; */
+    /* background-size: 100vh 100vh; */
+}
+button, .inset-box, .outset-box, .window, #taskbar {
+    background: #d9c6b3;
+    border: 3px outset #beaa96;
+    padding: 5px 15px;
+    font-family: inherit;
+}
+button:hover {
+    cursor: pointer;
+    filter: brightness(90%);
+}
+button:active {
+    border-style: inset;
+}
+input {
+    border: 3px inset #beaa96;
+    padding: 5px 15px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+.inset-box {
+    border-style: inset;
+}
+#taskbar {
+    color: #222;
+    position: fixed;
+    /* border-bottom: none; */
+    border-left: none;
+    border-right: none;
+    bottom: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 2em;
+    line-height: 2em;
+}
+.desktop-icon {
+    background: none;
+    border: 2px dotted transparent;
+    color: #fff;
+    margin: 10px;
+    padding: 5px 0px;
+    width: calc(50px + 2 * 20px);
+    text-align: center;
+}
+.desktop-icon:hover {
+    border-color: #bbb;
+    filter: none;
+}
+.desktop-icon:active {
+    background: #ffffff18;
+    border-style: dotted;
+    border-color: #ddd;
+}
+.desktop-icon img {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+}
+@keyframes windowOpen {
+    from {
+        transform: scale(0.7) translate(-50%, -50%);
+        opacity: 0.2;
+    }
+    to {
+        transform: scale(1) translate(-50%, -50%);
+        opacity: 1;
+    }
+}
+.window {
+    position: fixed;
+    border-width: 2px;
+    width: 500px;
+    height: 350px;
+    left: 50vw;
+    top: 50vh;
+    transform: translate(-50%, -50%);
+    padding: 0px;
+    z-index: 950;
+
+    animation: windowOpen 0.1s linear;
+}
+.window-header {
+    background: #3133a4;
+    color: #fff;
+    box-sizing: border-box;
+    width: 100%;
+    height: calc(2em + 2 * 3px);
+    line-height: 2em;
+    padding: 3px 5px;
+    margin: 0px
+}
+.window-content {
+    /* background-color: red; */
+    padding: 15px;
+    margin: 0px;
+}
+#logo-corner {
+    position: fixed;
+    width: 128px;
+    top: 10px;
+    right: 10px;
+}
+#start-logo {
+    height: 3em;
+    margin: -1em;
+}
+#startup-overlay-1, #startup-overlay-2 {
+    background: #111;
+    color: #fff;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    top: 0px;
+    left: 0px;
+    z-index: 200;
+}
+
+
+#iexplore {
+    width: 850px;
+    height: 600px;
+}
+#iexplore-content {
+    background: #fff;
+    border: 2px inset #fff;
+    width: 100%;
+    height: 440px;
+    margin-top: 10px;
+    box-sizing: border-box;
 }

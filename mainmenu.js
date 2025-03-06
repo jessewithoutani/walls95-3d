@@ -23,20 +23,14 @@ const windowPresets = {
                 Bookmarks: [empty]
             </div>
             <div id="iexplore-content">
-                <br /><br /><br /><br /><br />
+                <br /><br /><br /><br />
                 <center>
-                    <h1 style="font-size: 50px; font-family: 'Times New Roman';"><b>
-                        <span style="color: #5f51c9; margin-left: -10px;">D</span>
-                        <span style="color: #c9516d; margin-left: -10px;">o</span>
-                        <span style="color: #c99f51; margin-left: -10px;">o</span>
-                        <span style="color: #5f51c9; margin-left: -10px;">g</span>
-                        <span style="color: #9bc951; margin-left: -10px;">l</span>
-                        <span style="color: #c9516d; margin-left: -10px;">e</span>
-                    </b></h1>
-                    <input style="width: 50%;" /><br /><br />
-                    <button>Doogle Search</button>
-                    <button>I'm feeling lucky</button><br /><br />
-                    NOTE: Doogle is currently down... we will be back up in 1.844e+18 hours!
+                    <img src="./textures/doogle.png" style="height: 64px;"><br />
+                    <form onsubmit="outputDoogleResults(); return false;">
+                        <input style="width: 50%;" id="doogle-input" /><br /><br />
+                        <button>Doogle Search</button>
+                        <button>I'm feeling lucky</button>
+                    </form>
                 </center>
             </div>`
     }
@@ -65,4 +59,26 @@ function openWindow(id) {
 }
 function closeWindow(id) {
     document.getElementById(id).remove();
+}
+
+function outputDoogleResults() {
+    const corrections = [
+        "how does nuclear winter affect the trout population?", "can i eat plutonium?", 
+        "are pickles the same as fingers?", "john", "can i eat uranium?"]
+
+    const enteredInput = document.getElementById("doogle-input").value;
+    const sanitizedValue = enteredInput.replace("\"", "\\\"");
+    const content = `
+        <br /><br />
+        <form onsubmit="outputDoogleResults(); return false;" style="line-height: 2em; margin-left: 10px;">
+            <input style="width: 50%;" id="doogle-input" value="${sanitizedValue}" />&nbsp;
+            <button>Search</button>
+        </form>
+        <hr />
+        <div style="padding: 10px; line-height: 1.25em;">
+            No results were found...<br /><br />
+            <i>Did you mean</i>: ${corrections[Math.floor(Math.random() * corrections.length)]}
+        </div>
+    `;
+    document.getElementById("iexplore-content").innerHTML = content;
 }

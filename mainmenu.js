@@ -88,3 +88,12 @@ function outputDoogleResults() {
     `;
     document.getElementById("iexplore-content").innerHTML = content;
 }
+
+function doStartupSequence() {
+    setTimeout(() => { document.getElementById("minitrends-1").classList.remove("hidden"); }, 100);
+    setTimeout(() => { document.getElementById("minitrends-2").classList.remove("hidden"); }, 300);
+    setTimeout(() => { document.getElementById("minitrends-3").classList.remove("hidden"); }, 500);
+    setTimeout(() => {
+        document.getElementById("startup-overlay-2").classList.remove("hidden");
+    }, 850);
+}

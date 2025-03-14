@@ -115,6 +115,7 @@ function setupPlayer() {
 }
 let level = undefined;
 let projectiles = [];
+let attackPressed = false;
 
 function setupScene() {
     const directional = new THREE.DirectionalLight(0xfff2b3, 2.5);
@@ -153,22 +154,16 @@ window.onkeydown = function(event) {
         location.reload();
         return;
     }
-    if (event.key == "e") {
-        window.onmousedown();
-    }
+    // if (event.key == "e") {
+    //     window.onmousedown();
+    // }
     if (event.key == " ") {
         player.userData.hiding = false;
     }
     pressedKeys[event.key] = true;
 }
 window.onmousedown = function(event) {
-    if (timeSinceLastShot <= combatCooldown) return;
-    const newProjectile = new Projectile(level, theta);
-    newProjectile.position.copy(player.position);
-    newProjectile.position.y = 1.85;
-    projectiles.push(newProjectile);
-    scene.add(newProjectile);
-    timeSinceLastShot = 0;
+    attackPressed = true;
 }
 
 // start() update runs once before the first frame
@@ -177,6 +172,10 @@ function start() {
     setupScene();
     healthIcons = document.querySelectorAll("#health .icon");
     previousHealth = player.userData.health;
+
+    setTimeout(() => {
+        document.getElementById("loading-overlay").remove();
+    }, 300);
 }
 
 const WALK_SPEED = 7;
@@ -216,6 +215,21 @@ function updatePlayer(delta) {
     player.position.add(moveZ);
     if (level.checkIntersection(player.position, PLAYER_RADIUS)) {
         player.position.sub(moveZ);
+    }
+}
+
+function updateAttacking(delta) {
+    if ((attackPressed || pressedKeys.e) && timeSinceLastShot >= combatCooldown) {
+        const newProjectile = new Projectile(level, theta);
+        newProjectile.position.copy(player.position);
+        newProjectile.position.y = 1.85;
+        projectiles.push(newProjectile);
+        scene.add(newProjectile);
+        timeSinceLastShot = 0;
+        attackPressed = false;
+    }
+    else {
+        timeSinceLastShot += delta;
     }
 }
 
@@ -276,7 +290,6 @@ function update() {
 
     const delta = clock.getDelta();
     timeElapsed += delta;
-    timeSinceLastShot += delta;
 
     document.getElementById("user-data").innerHTML = JSON.stringify(player.userData)
         .replace("icecream", "<span id='ice-cream'>icecream</span>")
@@ -328,6 +341,7 @@ function update() {
     // update stuff
     updatePlayer(delta);
     updateHiding(delta);
+    updateAttacking(delta);
     level.update(delta);
     updateProjectiles(delta, theta);
     camera.updateProjectionMatrix();

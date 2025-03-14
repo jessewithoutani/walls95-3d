@@ -27,7 +27,7 @@ const windowPresets = {
                 <center>
                     <img src="./textures/doogle.png" style="height: 64px;"><br />
                     <form onsubmit="outputDoogleResults(); return false;">
-                        <input style="width: 50%;" id="doogle-input" /><br /><br />
+                        <input style="width: 50%;" id="doogle-input" autocomplete="off" /><br /><br />
                         <button>Doogle Search</button>
                         <button>I'm feeling lucky</button>
                     </form>
@@ -40,6 +40,13 @@ const windowPresets = {
             The entire game - me<br />
             Made with <a href="https://threejs.org/">Three.JS</a>`
     },
+    "loading-window": {
+        title: "Loading...",
+        content: `
+            <center>
+                <img src="./textures/loading_bar.gif" class="loading-bar" /><br />
+            </center>`
+    }
 }
 
 function startTimeUpdates() {
@@ -48,7 +55,10 @@ function startTimeUpdates() {
     }, 1000);
 }
 function openLevel(filePath) {
-    window.location.href = `./level.html?filePath=${btoa(filePath)}`;
+    openWindow("loading-window");
+    setTimeout(() => {
+        window.location.href = `./level.html?filePath=${btoa(filePath)}`;
+    }, 500 + Math.random() * 500);
 }
 
 function openWindow(id) {
@@ -77,7 +87,7 @@ function outputDoogleResults() {
     const content = `
         <br /><br />
         <form onsubmit="outputDoogleResults(); return false;" style="line-height: 2em; margin-left: 10px;">
-            <input style="width: 50%;" id="doogle-input" value="${sanitizedValue}" />&nbsp;
+            <input style="width: 50%;" id="doogle-input" value="${sanitizedValue}" autocomplete="off" />&nbsp;
             <button>Search</button>
         </form>
         <hr />
@@ -95,5 +105,10 @@ function doStartupSequence() {
     setTimeout(() => { document.getElementById("minitrends-3").classList.remove("hidden"); }, 500);
     setTimeout(() => {
         document.getElementById("startup-overlay-2").classList.remove("hidden");
-    }, 850);
+    }, 1100);
+
+    setTimeout(() => {
+        document.getElementById("startup-overlay-1").classList.add("hidden");
+        document.getElementById("startup-overlay-2").classList.add("hidden");
+    }, 2950);
 }

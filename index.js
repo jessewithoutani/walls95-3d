@@ -1,8 +1,12 @@
+console.log("herro")
+
 import * as THREE from 'three';
 import * as util from './util.mjs';
 import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
 import { Level } from './levels.mjs';
 import { Projectile } from './projectile.mjs';
+
+console.log("libraries loaded")
 
 // import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 // import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -18,7 +22,6 @@ renderer.setPixelRatio(1.5);
 renderer.setSize(window.innerWidth - 120, window.innerHeight - 120);
 // renderer.sortObjects = true;
 document.body.appendChild(renderer.domElement);
-
 
 const scene = new THREE.Scene();
 // sky: 0x86bde3
@@ -168,14 +171,15 @@ window.onmousedown = function(event) {
 
 // start() update runs once before the first frame
 function start() {
-    setupPlayer();
-    setupScene();
+    setupPlayer(); console.log("player setup")
+    setupScene(); console.log("scene setup")
     healthIcons = document.querySelectorAll("#health .icon");
     previousHealth = player.userData.health;
 
-    setTimeout(() => {
-        document.getElementById("loading-overlay").remove();
-    }, 300);
+    // setTimeout(() => {
+    //     document.getElementById("loading-overlay").remove();
+    // }, 300);
+    document.getElementById("loading-overlay").remove();
 }
 
 const WALK_SPEED = 7;

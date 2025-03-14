@@ -81,7 +81,7 @@ hr {
     left: 80px;
     width: 400px;
     height: fit-content;
-    z-index: 899;
+    z-index: 200;
     /* background: radial-gradient(circle, rgba(2,0,36,0.6) 0%, rgba(0,0,0,0.2) 35%, rgba(0,212,255,0) 100%); */
     padding: 12px;
     text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
@@ -175,7 +175,6 @@ hr {
     z-index: 200;
 
     opacity: 0;
-    /* opacity: 0.5; */
 }
 #damage-overlay {
     background: radial-gradient(circle, transparent 0%, #8f2121 100%);
@@ -184,6 +183,8 @@ hr {
     height: 100vh;
     pointer-events: none;
     z-index: 901;
+
+    opacity: 0;
 }
 #heal-overlay {
     background: radial-gradient(circle, transparent 0%, #5aabe4 100%);
@@ -192,6 +193,8 @@ hr {
     height: 100vh;
     pointer-events: none;
     z-index: 900;
+
+    opacity: 0;
 }
 #hiding-overlay {
     background-image: url("./textures/hiding_overlay.png"), radial-gradient(circle, transparent 0%, #000 100%);
@@ -221,7 +224,7 @@ hr {
     left: 50vw;
     top: 50vh;
     transform: translate(-50%, -50%);
-    z-index: 500;
+    z-index: 210;
 }
 
 .blacked-icon {
@@ -232,13 +235,13 @@ hr {
 }
 
 .desktop {
-    background: #5b847c;
+    background: #5b847e;
     /* background-image: url("./textures/wallpaper_painting.png"); */
     /* image-rendering: pixelated; */
     /* background-position: center; */
     /* background-size: 100vh 100vh; */
 }
-button, .inset-box, .outset-box, .window, #taskbar {
+button, .inset-box, .outset-box, .window, #taskbar, .loading-bar {
     background: #d9c6b3;
     border: 3px outset #beaa96;
     padding: 5px 15px;
@@ -257,8 +260,12 @@ input {
     box-sizing: border-box;
     font-family: inherit;
 }
-.inset-box {
+.inset-box, .loading-bar {
     border-style: inset;
+}
+.loading-bar {
+    height: 24px;
+    padding: 0px;
 }
 #taskbar {
     color: #222;
@@ -297,11 +304,11 @@ input {
 }
 @keyframes windowOpen {
     from {
-        transform: scale(0.7) translate(-50%, -50%);
+        /* transform: scale(0.7) translate(-50%, -50%); */
         opacity: 0.2;
     }
     to {
-        transform: scale(1) translate(-50%, -50%);
+        /* transform: scale(1) translate(-50%, -50%); */
         opacity: 1;
     }
 }
@@ -343,7 +350,7 @@ input {
     height: 3em;
     margin: -1em;
 }
-#startup-overlay-1, #startup-overlay-2 {
+#startup-overlay-1, #startup-overlay-2, #loading-overlay {
     background: #111;
     color: #fff;
     position: fixed;
@@ -351,7 +358,19 @@ input {
     height: 100vh;
     top: 0px;
     left: 0px;
-    z-index: 200;
+    z-index: 300;
+}
+#startup-overlay-2 {
+    text-align: center;
+}
+#logo-massive {
+    width: 512px;
+    height: 512px;
+    margin-top: calc(50vh - 512px / 2);
+}
+#american-minitrends {
+    height: 128px;
+    margin-top: 20px;
 }
 
 
@@ -366,4 +385,8 @@ input {
     height: 440px;
     margin-top: 10px;
     box-sizing: border-box;
+}
+#loading-window {
+    height: 100px;
+    width: 325px;
 }

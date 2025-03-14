@@ -4,11 +4,11 @@ import { PointerLockControls } from 'three/addons/controls/PointerLockControls.j
 import { Level } from './levels.mjs';
 import { Projectile } from './projectile.mjs';
 
-import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
+// import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+// import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+// import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
+// import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+// import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
 
 THREE.Cache.clear();
 

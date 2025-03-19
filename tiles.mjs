@@ -20,6 +20,7 @@ const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png"
 const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
 const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });*/
 
+const audioLoader = new THREE.AudioLoader();
 
 function inCylinderCollider(position, objectPosition, objectRadius, radius) {
     return ((position.x - objectPosition.x) ** 2 + (position.z - objectPosition.z) ** 2) <= (objectRadius + radius) ** 2;
@@ -297,11 +298,13 @@ function Exit() {
     return object;
 }
 
-function ItemPedestal(id) {
+function ItemPedestal(listener, id) {
     const object = new Tile(true, true, true, false, true); object.name = "TILE_PDSTL";
     let item;
     let timeElapsed = 0;
     let collected = false;
+
+    let sound = undefined;
 
     function colliding(position, radius = 0) {
         return inCylinderCollider(position, object.position, 0.5, radius);
@@ -316,6 +319,7 @@ function ItemPedestal(id) {
             else {
                 player.userData[id] = 1;
             }
+            sound.play();
             return true;
         }
         return false;
@@ -328,6 +332,12 @@ function ItemPedestal(id) {
         const pedestal = new THREE.Sprite(new THREE.SpriteMaterial({ map: util.loadTexture("pillar.png") }));
         object.add(pedestal);
         pedestal.scale.set(4, 4, 4);
+
+        sound = new THREE.Audio(listener);
+        audioLoader.load("./audio/collect.wav", (buffer) => {
+            sound.setBuffer(buffer);
+            sound.setVolume(0.5);
+        });
     }
     function update(delta) {
         timeElapsed += delta;
@@ -384,7 +394,7 @@ function SecretTrigger(main) {
     return object;
 }
 
-function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps = 8, scale = 2, maxHealth = 2, cooldown = 0.75, detectionRadius = 30, attackRadius = 2, _radius = 1) {
+function RusherEnemy(level, listener, textures, deathTexture, speed, damage, player, fps = 8, scale = 2, maxHealth = 2, cooldown = 0.75, detectionRadius = 30, attackRadius = 2, _radius = 1) {
     const object = new Tile(true, true, true, true);
     let sprite;
     const animationStartTime = Math.random() * 10;
@@ -511,13 +521,13 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 }
 
 
-function Sniffer(level, player) {
+function Sniffer(level, player, listener) {
     const multiplierThing = 0.7;
 
-    const sniffingRadius = 48; // * 2
-    const sniffingSpeed = 5.25; // * 8
-    const chargingSpeed = 6; // * 0.75
-    const object = new RusherEnemy(level, 
+    const sniffingRadius = 32; // * 2
+    const sniffingSpeed = 5.75; // * 8
+    const chargingSpeed = 6.3; // * 0.75
+    const object = new RusherEnemy(level, listener, 
         [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
         util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000,
     0.1, 32, 2, 0.6);
@@ -530,6 +540,8 @@ function Sniffer(level, player) {
     let snifferTraversableNodes = [];
 
     let pathIndicators = [];
+
+    let sniffingSound = undefined;
     
     let tilePlane = new THREE.Mesh(new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
         new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
@@ -547,6 +559,17 @@ function Sniffer(level, player) {
         object.awake();
 
         if (PATH_INDICATORS) level.add(tilePlane);
+
+        sniffingSound = new THREE.PositionalAudio(listener);
+        audioLoader.load("./audio/sniffing.wav", (buffer) => {
+            sniffingSound.setBuffer(buffer);
+            sniffingSound.setRefDistance(15);
+            sniffingSound.setMaxDistance(32);
+            sniffingSound.setVolume(0.725);
+            sniffingSound.setLoop(true);
+            sniffingSound.play();
+            object.add(sniffingSound);
+        });
     }
 
     function updatePathIndicators() {
@@ -618,7 +641,7 @@ function Sniffer(level, player) {
         }
 
         document.getElementById("sniffer-overlay").style.opacity = 
-            Math.max(0.5 - (0.5 / (sniffingRadius / 2)) * player.position.distanceTo(object.position), 0);
+            Math.max(0.5 - (0.5 / (sniffingRadius * 0.75)) * player.position.distanceTo(object.position), 0);
     }
 
     function onSightUpdate(delta) {

@@ -28,6 +28,7 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x000000, 0.05);
 scene.background = new THREE.Color(0x86bde3);
 let camera = undefined;
+let listener = undefined;
 
 let player = undefined;
 let playerVelocity = 0;
@@ -80,6 +81,8 @@ function setupCamera() {
         (window.innerWidth - 120) / (window.innerHeight - 120), 
         0.1, 7500);
     camera.rotation.order = 'YXZ';
+    listener = new THREE.AudioListener();
+    camera.add(listener);
 }
 let controls = null;
 function setupPlayer() {
@@ -146,7 +149,7 @@ function setupScene() {
     const urlParams = new URLSearchParams(window.location.search);
     const filePath = atob(urlParams.get("filePath"));
     // alert(filePath)
-    level = new Level(main, player, filePath);
+    level = new Level(main, player, listener, filePath);
     level.name = "LEVEL";
     scene.add(level);
 }
@@ -167,6 +170,7 @@ window.onkeydown = function(event) {
 }
 window.onmousedown = function(event) {
     attackPressed = true;
+    listener.context.resume();
 }
 
 // start() update runs once before the first frame
@@ -324,6 +328,7 @@ function update() {
         document.getElementById("death-screen").classList.remove("hidden");
         dead = true;
         controls.unlock();
+        listener.setMasterVolume(0);
         document.querySelector("canvas").remove();
         setTimeout(() => { document.getElementById("bsod-1").classList.remove("hidden"); }, 100);
         setTimeout(() => { document.getElementById("bsod-2").classList.remove("hidden"); }, 250);

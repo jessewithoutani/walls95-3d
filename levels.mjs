@@ -5,7 +5,7 @@ import * as tiles from './tiles.mjs';
 const TILE_SIZE = 4;
 const INDICATE_NODES = false;
 
-export function Level(main, player, filePath = "welcome.w95") {
+export function Level(main, player, listener, filePath = "welcome.w95") {
     let object = new THREE.Object3D();
     let tilePalette = {
         "t": () => { return new tiles.WallBlock(util.loadTexture("tutorialbob.png")); },
@@ -27,20 +27,20 @@ export function Level(main, player, filePath = "welcome.w95") {
         "B": () => { return new tiles.Bob(); },
         "m": () => { return new tiles.Martin(player); },
     
-        "d": () => { return new tiles.ItemPedestal("document") },
-        "i": () => { return new tiles.ItemPedestal("icecream") },
+        "d": () => { return new tiles.ItemPedestal(listener, "document") },
+        "i": () => { return new tiles.ItemPedestal(listener, "icecream") },
 
         "p": () => { return new tiles.PlantPot() },
     
         "*": () => { return new tiles.SecretTrigger(main); },
 
         "eG": () => { // Gob
-            return new tiles.RusherEnemy(object, 
+            return new tiles.RusherEnemy(object, listener,
                 [util.loadTexture("entities/bog/bog1.png"), util.loadTexture("entities/bog/bog2.png")], 
                 util.loadTexture("entities/bog/bogdead.png"), 13.5, 1, player);
         },
         "eS": () => { // Sniffer
-            return new tiles.Sniffer(object, player);
+            return new tiles.Sniffer(object, player, listener);
         }
     }
 

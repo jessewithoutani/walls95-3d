@@ -221,10 +221,11 @@ function Martin(player) {
     // }
     return object;
 }
-function BlockDoor(texture) {
+function BlockDoor(texture, listener) {
     const object = new Tile(true, true, true); object.name = "TILE_BLKD";
     let opened = false;
     let sprite;
+    let doorSound;
 
     function colliding(position, radius = 0) {
         return sprite.position.y > -2 && inSquareCollider(position, object.position, 2, radius);
@@ -233,6 +234,7 @@ function BlockDoor(texture) {
     function inTrigger(position, radius = 0, player) {
         if (!opened && inSquareCollider(position, object.position, 2.2, radius)) {
             opened = true;
+            doorSound.play();
             return true;
         }
         return false;
@@ -241,11 +243,19 @@ function BlockDoor(texture) {
     function awake() {
         sprite = new THREE.Mesh(new THREE.BoxGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), new THREE.MeshPhongMaterial({
             map: texture}));
+        doorSound = new THREE.PositionalAudio(listener);
+        audioLoader.load("./audio/door.wav", (buffer) => {
+            doorSound.setBuffer(buffer);
+            doorSound.setRefDistance(10);
+            doorSound.setMaxDistance(289);
+            doorSound.setVolume(0.725);
+            object.add(doorSound);
+        });
         object.add(sprite);
     }
     function update(delta) {
         if (opened) {
-            sprite.position.y -= 2.1 * delta;
+            sprite.position.y -= 3.75 * delta;
             if (sprite.position.y <= -4) object.remove(sprite);
         }
     }
@@ -564,8 +574,8 @@ function Sniffer(level, player, listener) {
         audioLoader.load("./audio/sniffing.wav", (buffer) => {
             sniffingSound.setBuffer(buffer);
             sniffingSound.setRefDistance(15);
-            sniffingSound.setMaxDistance(32);
-            sniffingSound.setVolume(0.725);
+            sniffingSound.setMaxDistance(28);
+            sniffingSound.setVolume(0.4);
             sniffingSound.setLoop(true);
             sniffingSound.play();
             object.add(sniffingSound);

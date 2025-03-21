@@ -18,6 +18,7 @@ THREE.Cache.clear();
 
 
 const renderer = new THREE.WebGLRenderer();
+const audioLoader = new THREE.AudioLoader();
 renderer.setPixelRatio(1.5);
 renderer.setSize(window.innerWidth - 120, window.innerHeight - 120);
 // renderer.sortObjects = true;
@@ -44,6 +45,8 @@ let theta = 0;
 let hidingOverlay;
 const hidingGradient = "radial-gradient(circle, transparent 0%, #000 100%)";
 let hiddenWhenHiding = [];
+
+let footstepSound;
 
 // POST PROCESSING
 
@@ -99,6 +102,15 @@ function setupPlayer() {
     controls.pointerSpeed = 0.6;
     controls.minPolarAngle = Math.PI/2;
     controls.maxPolarAngle = Math.PI/2;
+
+    footstepSound = new THREE.Audio(listener);
+
+    audioLoader.load("./audio/footsteps.wav", (buffer) => {
+        footstepSound.setBuffer(buffer);
+        footstepSound.setVolume(0);
+        footstepSound.setLoop(true);
+        footstepSound.play();
+    });
     
     controls.addEventListener("lock", () => {
         // menu.style.display = "none";
@@ -210,6 +222,8 @@ function updatePlayer(delta) {
     const moveVector = walkVector.clone().add(strafeVector).clampLength(0, WALK_SPEED * delta);
     // player.position.add(moveVector);
     camera.position.y = 2 + (Math.sin(timeElapsed * 12.5) * Math.max(Math.abs(walkMovement), Math.abs(strafeMovement)) * 0.07);
+
+    footstepSound.setVolume(1.0 * Math.max(Math.abs(walkMovement), Math.abs(strafeMovement)));
 
     // console.log(level.checkIntersection(player.position))
     const moveX = moveVector.clone(); moveX.z = 0;

@@ -22,8 +22,8 @@ export function Level(main, player, listener, filePath = "welcome.w95") {
             util.loadTexture("wallpaper_painting2.png"),
         ])},
     
-        "Md": () => { return new tiles.BlockDoor(util.loadTexture("metal.png")); },
-        "Pd": () => { return new tiles.BlockDoor(util.loadTexture("paintingwall.png")); },
+        "Md": () => { return new tiles.BlockDoor(util.loadTexture("metal.png"), listener); },
+        "Pd": () => { return new tiles.BlockDoor(util.loadTexture("paintingwall.png"), listener); },
         "B": () => { return new tiles.Bob(); },
         "m": () => { return new tiles.Martin(player); },
     

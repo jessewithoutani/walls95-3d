@@ -11,7 +11,7 @@ const windowPresets = {
             <hr />
             Welcome! Please select what you would like to do today:
             <br /><br />
-            <button onclick="openLevel('welcome.w95')" disabled>Tutorial [lvl 1]</button>
+            <button onclick="openLevel('welcome.w95')">Tutorial [lvl 1]</button>
             <button onclick="openLevel('testing.w95')">Recover my files [???]</button>`
     },
     "iexplore": {
@@ -37,7 +37,11 @@ const windowPresets = {
     "credits": {
         title: "Credits",
         content: `
-            The entire game - me<br />
+            Game Art - Jesse<br />
+            Programming - Jesse<br />
+            Sound Design - Sean<br />
+            Music - Sean<br />
+            <hr />
             Made with <a href="https://threejs.org/">Three.JS</a>`
     },
     "loading-window": {

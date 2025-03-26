@@ -1,20 +1,46 @@
+// const textureMap = {
+//     "BOB_TUTORIAL_TEXT" X
+        
+//     "PURPLE_TILED_WALL" X
+//     "PURPLE_TILED_WALL_PAINTING" X
+//     "EXIT"
+//     "NORMAL_WALL" X
+//     "METAL_WALL" X
+//     "WALLPAPER_WALL" X
+//     "WALLPAPER_WALL_DECORATED" X
+
+//     "METAL_DOOR"
+//     "PURPLE_TILED_WALL_PAINTING_DOOR"
+//     "BOB_ENTITY"
+//     "MARTIN_ENTITY"
+//     "DOCUMENT_PEDESTAL"
+//     "ICECREAM_PEDESTAL"
+//     "PLANT_POT"
+//     "SECRET_TRIGGER"
+//     "GOB_ENTITY"
+//     "SNIFFER_ENTITY"
+// }
+
+let loadedLevel = {};
+
 function importSelectedFile() {
     var reader = new FileReader();
     reader.readAsText(document.getElementById("file").files[0], "UTF-8");
     reader.onload = function(event) {
-        const contents = event.target.result;
+        const contents = JSON.parse(event.target.result);
         // document.getElementById("editor").innerHTML
-
-        let rows = contents.split("\n");
+        let rows = contents["content"];
         let x = 0; let z = 0;
         rows.forEach(row => {
             x = 0;
-            let rowSplit = row.split(" ");
             let rowInnerHTML = "";
-            rowSplit.forEach(char => {
+            row.forEach(char => {
                 char = char.replace("\r", "")
                 const id = btoa(`${x}:${z}`)
-                rowInnerHTML += `<button id="${id}" class="tile ${(char == '.') ? '' : 'occupied-tile'}" onclick="replaceTile('${id}')">${char}</button>`;
+                rowInnerHTML += `<button id="${id}" 
+                    class="tile ${(char == 'EMPTY') ? '' : 'occupied-tile'}" 
+                    style="background-image: url('./tile_thumbnails/${char}.png'); background-size: cover;"
+                    onclick="replaceTile('${id}')">&nbsp;</button>`;
                 x++;
             });
             document.getElementById("editor").innerHTML += `<div>${rowInnerHTML}</div>`;

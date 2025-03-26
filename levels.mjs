@@ -5,6 +5,8 @@ import * as tiles from './tiles.mjs';
 const TILE_SIZE = 4;
 const INDICATE_NODES = false;
 
+const audioLoader = new THREE.AudioLoader();
+
 export function Level(main, scene, player, listener, filePath = "./levels/welcome.json") {
     let object = new THREE.Object3D();
     let tilePalette = {
@@ -170,6 +172,15 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
         if (contents.ceilingPresent) scene.add(ceiling);
         ceiling.position.y = 4;
         ceiling.rotation.x = Math.PI / 2;
+
+        const ambientSound = new THREE.Audio(listener);
+        //ambientSoundPath
+        audioLoader.load(`./audio/${contents.ambientSoundPath}`, (buffer) => {
+            ambientSound.setBuffer(buffer);
+            ambientSound.setVolume(contents.ambientSoundVolume);
+            ambientSound.setLoop(true);
+            ambientSound.play();
+        });
 
         finished = true;
     }

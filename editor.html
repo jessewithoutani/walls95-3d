@@ -7,22 +7,30 @@
     <script src="./editor.js"></script>
     <style>
         .tile {
-            border: 1px solid #000;
+            /* border: 1px solid #000; */
             background: #eee;
             margin: 0px;
-            width: 30px;
-            height: 30px;
+            width: 40px;
+            height: 40px;
             text-align: center;
             cursor: pointer;
             display: inline-block;
+            image-rendering: pixelated;
+        }
+        .tile:hover {
+            outline: 5px solid #0f0;
         }
         .occupied-tile {
             background: #66c;
         }
+        .level-editor {
+            background: #d9c6b3;
+            color: #000;
+        }
     </style>
     <link rel="stylesheet" href="./index.css">
 </head>
-<body>
+<body class="level-editor">
     <h2>Tge Level EDitor :)</h2>
     <hr>
     <input type="file" id="file">&nbsp;&lt;&lt;&nbsp;&nbsp;

@@ -9,6 +9,8 @@
     "directionalLightIntensity": 2.5,
     "ambientLightColor": 7830689,
     "ambientLightIntensity": 2,
+    "ambientSoundPath": "soundtracks/generic_ambience.wav",
+    "ambientSoundVolume": 0.03,
     "content": [
         [
             "PURPLE_TILED_WALL",

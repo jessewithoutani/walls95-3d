@@ -1,6 +1,6 @@
 import json
 
-file_to_convert = "testing.w95"
+file_to_convert = "welcome.w95"
 target_name = file_to_convert.replace(".w95", ".json")
 """
     "t": () => { return new tiles.WallBlock(util.loadTexture("tutorialbob.png")); },
@@ -68,3 +68,24 @@ with open(file_to_convert, "r") as file:
             if item != "":
                 row.append(convertId(item))
         skibidi.append(row)
+
+    data_to_write = {
+        "fogColor": 0x000000,
+        "fogDensity": 0.05,
+        "skyTexturePath": "sky.png",
+        "floorTexturePath": "fancy_floor.png",
+        "ceilingTexturePath": "fancy_floor.png",
+        "ceilingPresent": True,
+
+        "directionalLightColor": 0xfff2b3,
+        "directionalLightIntensity": 2.5,
+        "ambientLightColor": 0x777ca1,
+        "ambientLightIntensity": 2,
+
+        "content": skibidi
+    }
+
+    print("Enter level name: ", end="")
+    target_name = input()
+    with open(f"./levels/{target_name}.json", "w") as target:
+        json.dump(data_to_write, target, indent=4)

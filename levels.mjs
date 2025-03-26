@@ -5,44 +5,71 @@ import * as tiles from './tiles.mjs';
 const TILE_SIZE = 4;
 const INDICATE_NODES = false;
 
-export function Level(main, player, listener, filePath = "welcome.w95") {
+export function Level(main, scene, player, listener, filePath = "./levels/welcome.json") {
     let object = new THREE.Object3D();
     let tilePalette = {
-        "t": () => { return new tiles.WallBlock(util.loadTexture("tutorialbob.png")); },
+        "BOB_TUTORIAL_TEXT": () => { return new tiles.WallBlock(util.loadTexture("tutorialbob.png")); },
     
-        "W": () => { return new tiles.WallBlock(util.loadTexture("default.png", 4, 4)); },
-        "P": () => { return new tiles.WallBlock(util.loadTexture("paintingwall.png")); },
-        "M": () => { return new tiles.WallBlock(util.loadTexture("metal.png")); },
-        "E": () => { return new tiles.Exit(); },
-        "N": () => { return new tiles.NormalWallBlock(); },
+        "PURPLE_TILED_WALL": () => { return new tiles.WallBlock(util.loadTexture("default.png", 4, 4)); },
+        "PURPLE_TILED_WALL_PAINTING": () => { return new tiles.WallBlock(util.loadTexture("paintingwall.png")); },
+        "METAL_WALL": () => { return new tiles.WallBlock(util.loadTexture("metal.png")); },
+        "EXIT": () => { return new tiles.Exit(); },
+        "NORMAL_WALL": () => { return new tiles.NormalWallBlock(); },
         // "Y": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png", 4, 4)); },
-        "Y": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png")); },
-        "YP": () => { return new tiles.RandomizedWallBlock([
+        "WALLPAPER_WALL": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png")); },
+        "WALLPAPER_WALL_DECORATED": () => { return new tiles.RandomizedWallBlock([
             util.loadTexture("wallpaper_painting.png"),
             util.loadTexture("wallpaper_painting2.png"),
         ])},
     
-        "Md": () => { return new tiles.BlockDoor(util.loadTexture("metal.png"), listener); },
-        "Pd": () => { return new tiles.BlockDoor(util.loadTexture("paintingwall.png"), listener); },
-        "B": () => { return new tiles.Bob(); },
-        "m": () => { return new tiles.Martin(player); },
+        "METAL_DOOR": () => { return new tiles.BlockDoor(util.loadTexture("metal.png"), listener); },
+        "PURPLE_TILED_WALL_PAINTING_DOOR": () => { return new tiles.BlockDoor(util.loadTexture("paintingwall.png"), listener); },
+        "BOB_ENTITY": () => { return new tiles.Bob(); },
+        "MARTIN_ENTITY": () => { return new tiles.Martin(player); },
     
-        "d": () => { return new tiles.ItemPedestal(listener, "document") },
-        "i": () => { return new tiles.ItemPedestal(listener, "icecream") },
+        "DOCUMENT_PEDESTAL": () => { return new tiles.ItemPedestal(listener, "document") },
+        "ICECREAM_PEDESTAL": () => { return new tiles.ItemPedestal(listener, "icecream") },
 
-        "p": () => { return new tiles.PlantPot() },
+        "PLANT_POT": () => { return new tiles.PlantPot() },
     
-        "*": () => { return new tiles.SecretTrigger(main); },
+        "SECRET_TRIGGER": () => { return new tiles.SecretTrigger(main); },
 
-        "eG": () => { // Gob
+        "GOB_ENTITY": () => { // Gob
             return new tiles.RusherEnemy(object, listener,
                 [util.loadTexture("entities/bog/bog1.png"), util.loadTexture("entities/bog/bog2.png")], 
                 util.loadTexture("entities/bog/bogdead.png"), 13.5, 1, player);
         },
-        "eS": () => { // Sniffer
+        "SNIFFER_ENTITY": () => { // Sniffer
             return new tiles.Sniffer(object, player, listener);
         }
     }
+
+    /*
+    ".": "EMPTY",
+    "^": "PLAYER_SPAWN",
+
+    "t": "BOB_TUTORIAL_TEXT",
+
+    "W": "PURPLE_TILED_WALL",
+    "P": "PURPLE_TILED_WALL_PAINTING",
+    "M": "METAL_WALL",
+    "E": "EXIT",
+    "N": "NORMAL_WALL",
+    "Y": "WALLPAPER_WALL",
+    "YP": "WALLPAPER_WALL_DECORATED",
+    "Md": "METAL_DOOR",
+    "Pd": "PURPLE_TILED_WALL_PAINTING_DOOR",
+    "p": "PLANT_POT",
+    "*": "SECRET_TRIGGER",
+
+    "d": "DOCUMENT_PEDESTAL",
+    "i": "ICECREAM_PEDESTAL",
+
+    "B": "BOB_ENTITY",
+    "m": "MARTIN_ENTITY",
+    "eG": "GOB_ENTITY",
+    "eS": "SNIFFER_ENTITY"
+    */
 
 
     let finished = false;
@@ -55,7 +82,8 @@ export function Level(main, player, listener, filePath = "welcome.w95") {
 
     fetch(filePath).then((response) => {
         response.text().then((contents) => {
-            loadLevel(contents);
+            console.log(contents)
+            loadLevel(JSON.parse(contents));
         });
     });
 
@@ -78,15 +106,16 @@ export function Level(main, player, listener, filePath = "welcome.w95") {
 
     function loadLevel(contents) {
         traversableNodes.clear();
-        let rows = contents.split("\n");
+        let rows = contents["content"];
         let x = 0; let z = 0;
         rows.forEach(row => {
             x = 0;
-            let rowSplit = row.split(" ");
-            rowSplit.forEach(char => {
-                char = char.replace("\r", "")
-                if (char in tilePalette) {
-                    const newTile = tilePalette[char]();
+            // console.log(row)
+            // let rowSplit = row.split(" ");
+            row.forEach(tileName => {
+                tileName = tileName.replace("\r", "")
+                if (tileName in tilePalette) {
+                    const newTile = tilePalette[tileName]();
                     newTile.position.set(x * TILE_SIZE, TILE_SIZE / 2, z * TILE_SIZE);
 
                     object.add(newTile);
@@ -107,7 +136,7 @@ export function Level(main, player, listener, filePath = "welcome.w95") {
                     if (newTile.trigger) triggers.push(newTile);
                     if (newTile.requiresUpdate) requiresUpdate.push(newTile);
                 }
-                else if (char == "^") {
+                else if (tileName == "PLAYER_SPAWN") {
                     createTraversableNode(new THREE.Vector2(x, z));
                     player.position.set(x * TILE_SIZE, 0, z * TILE_SIZE);
                 }
@@ -118,6 +147,30 @@ export function Level(main, player, listener, filePath = "welcome.w95") {
             });
             z++;
         });
+
+        //
+        scene.fog = new THREE.FogExp2(contents.fogColor, contents.fogDensity);
+        const directional = new THREE.DirectionalLight(
+            contents.directionalLightColor, contents.directionalLightIntensity);
+        directional.position.set(0.5, 1, 0.1);
+        scene.add(directional);
+        const ambient = new THREE.AmbientLight(contents.ambientLightColor, contents.ambientLightIntensity);
+        scene.add(ambient);
+    
+        // ======================================
+        const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
+            map: util.loadTexture(contents.floorTexturePath, 500, 500),
+        })); ground.name = "GROUND";
+        scene.add(ground);
+        ground.rotation.x = -Math.PI / 2;
+    
+        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
+            map: util.loadTexture(contents.ceilingTexturePath, 500, 500),
+        })); ceiling.name = "CEILING";
+        if (contents.ceilingPresent) scene.add(ceiling);
+        ceiling.position.y = 4;
+        ceiling.rotation.x = Math.PI / 2;
+
         finished = true;
     }
     function checkIntersection(position, radius, enemiesOnly = false) {

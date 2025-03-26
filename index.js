@@ -26,7 +26,7 @@ document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 // sky: 0x86bde3
-scene.fog = new THREE.FogExp2(0x000000, 0.05);
+scene.fog = new THREE.FogExp2(0xffaaaa, 0.1);
 scene.background = new THREE.Color(0x86bde3);
 let camera = undefined;
 let listener = undefined;
@@ -136,32 +136,12 @@ let projectiles = [];
 let attackPressed = false;
 
 function setupScene() {
-    const directional = new THREE.DirectionalLight(0xfff2b3, 2.5);
-    directional.position.set(0.5, 1, 0.1);
-    scene.add(directional);
-    const ambient = new THREE.AmbientLight(0x777ca1, 2);
-    scene.add(ambient);
-
-    // ======================================
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
-        map: util.loadTexture("fancy_floor.png", 500, 500)
-    })); ground.name = "GROUND";
-    scene.add(ground);
-    ground.rotation.x = -Math.PI / 2;
-
-    const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
-        map: util.loadTexture("fancy_floor.png", 500, 500)
-    })); ceiling.name = "CEILING";
-    scene.add(ceiling);
-    ceiling.position.y = 4;
-    ceiling.rotation.x = Math.PI / 2;
-
     // ======================================
     console.log(main);
     const urlParams = new URLSearchParams(window.location.search);
     const filePath = atob(urlParams.get("filePath"));
     // alert(filePath)
-    level = new Level(main, player, listener, filePath);
+    level = new Level(main, scene, player, listener, filePath);
     level.name = "LEVEL";
     scene.add(level);
 }

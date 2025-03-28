@@ -139,7 +139,16 @@ function setupScene() {
     // ======================================
     console.log(main);
     const urlParams = new URLSearchParams(window.location.search);
-    const filePath = atob(urlParams.get("filePath"));
+
+    let filePath = "";
+
+    if (urlParams.has("filePath")) {
+        filePath = atob(urlParams.get("filePath"));
+    }
+    else {
+        const contents = localStorage.getItem(atob(urlParams.get("saveName")));
+        filePath = `data:text/plain;base64,${btoa(contents)}`;
+    }
     // alert(filePath)
     level = new Level(main, scene, player, listener, filePath);
     level.name = "LEVEL";

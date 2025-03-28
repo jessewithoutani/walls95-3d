@@ -27,59 +27,57 @@ function importSelectedFile() {
     var reader = new FileReader();
     reader.readAsText(document.getElementById("file").files[0], "UTF-8");
     reader.onload = function(event) {
-        const contents = JSON.parse(event.target.result);
-        // document.getElementById("editor").innerHTML
-        let rows = contents["content"];
-        let x = 0; let z = 0;
-        rows.forEach(row => {
-            x = 0;
-            let rowInnerHTML = "";
-            row.forEach(char => {
-                char = char.replace("\r", "")
-                const id = btoa(`${x}:${z}`)
-                rowInnerHTML += `<button id="${id}" 
-                    class="tile ${(char == 'EMPTY') ? '' : 'occupied-tile'}" 
-                    style="background-image: url('./tile_thumbnails/${char}.png'); background-size: cover;"
-                    onclick="replaceTile('${id}')">&nbsp;</button>`;
-                x++;
-            });
-            document.getElementById("editor").innerHTML += `<div>${rowInnerHTML}</div>`;
-            z++;
-        });
-
+        loadedLevel = JSON.parse(event.target.result);
+        updateEditor();
     }
     reader.onerror = function(event) { alert("Unable to load file :("); }
 }
-function replaceTile(id) {
-    const char = document.getElementById("tile-select").value;
-    document.getElementById(id).className = `tile ${(char == '.') ? '' : 'occupied-tile'}`;
-    document.getElementById(id).innerText = char;
+function replaceTile(x, z) {
+    const tileId = document.getElementById("tile-select").value;
+    loadedLevel.content[z][x] = tileId;
+    updateEditor();
 }
 function exportMap() {
-    let contents = "";
-    document.querySelectorAll("#editor div").forEach((element) => {
-        element.querySelectorAll(".tile").forEach((_element) => {
-            contents += `${_element.innerText} `;
-        });
-        contents += "\n";
-    })
+    let contents = JSON.stringify(loadedLevel);
     contents = contents.substring(0, contents.length - 1)
     const blob = new Blob([contents], { type: "text/plain" });
     const link = document.querySelector("#export-link");
-    link.download = "untitled_level.w95";
+    link.download = "untitled_level.json";
     link.href = URL.createObjectURL(blob);
     link.click();
 }
-function playMap() {
-    let contents = "";
-    document.querySelectorAll("#editor div").forEach((element) => {
-        element.querySelectorAll(".tile").forEach((_element) => {
-            contents += `${_element.innerText} `;
+function updateEditor() {
+    document.getElementById("editor").innerHTML = "";
+    let rows = loadedLevel["content"];
+    let x = 0; let z = 0;
+    rows.forEach(row => {
+        x = 0;
+        let rowInnerHTML = "";
+        row.forEach(char => {
+            char = char.replace("\r", "")
+            const id = btoa(`${x}:${z}`)
+            rowInnerHTML += `<button id="${id}" 
+                class="tile ${(char == 'EMPTY') ? '' : 'occupied-tile'}" 
+                style="background-image: url('./tile_thumbnails/${char}.png'); background-size: cover;"
+                onclick="replaceTile(${x}, ${z})">&nbsp;</button>`;
+            x++;
         });
-        contents += "\n";
-    })
+        document.getElementById("editor").innerHTML += `<div>${rowInnerHTML}</div>`;
+        z++;
+    });
+}
+function saveMap() {
+    let name = prompt("put in the name you wanna save as :)");
+    localStorage.setItem(name, JSON.stringify(loadedLevel));
+    alert("k done lol");
+}
+function playMap() {
+    let contents = JSON.stringify(loadedLevel);
     contents = contents.substring(0, contents.length - 1)
     const link = document.querySelector("#export-link");
-    link.href = `./level.html?filePath=${btoa(URL.createObjectURL(new Blob([contents], { type: "text/plain" })))}`
+    // link.href = `./level.html?filePath=${btoa(URL.createObjectURL(new Blob([contents], { type: "application/json" })))}`
+    const uri = btoa("data:text/plain;base64," + btoa(contents));
+    alert(uri)
+    link.href = `./level.html?filePath=${uri}`;
     link.click();
 }

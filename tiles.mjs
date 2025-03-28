@@ -574,8 +574,8 @@ function Sniffer(level, player, listener) {
         audioLoader.load("./audio/sniffing.wav", (buffer) => {
             sniffingSound.setBuffer(buffer);
             sniffingSound.setRefDistance(15);
-            sniffingSound.setMaxDistance(28);
-            sniffingSound.setVolume(0.4);
+            sniffingSound.setMaxDistance(sniffingRadius * 0.6);
+            sniffingSound.setVolume(0.2);
             sniffingSound.setLoop(true);
             sniffingSound.play();
             object.add(sniffingSound);

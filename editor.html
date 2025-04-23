@@ -52,7 +52,18 @@
         <button onclick="exportMap()">Export</button>
         <!-- <button onclick="playMap()">Playtest</button> -->
         <a id="export-link" style="display: none;"></a>
-        <hr>
+        <hr />
+
+        Win condition:&nbsp;
+        <select id="win-condition-select">
+            <option>EXIT</option>
+            <option>DOCUMENTS_COLLECTED</option>
+            <option>DOCUMENTS_COLLECTED_SNIFFER</option>
+        </select>
+        <input type="color">
+
+        <hr />
+        
         Select tile:
         <select id="tile-select">
             <option value="EMPTY">EMPTY</option>
@@ -79,9 +90,12 @@
             <option value="WALLPAPER_WALL">Wallpaper</option>
             <option value="WALLPAPER_WALL_DECORATED">Wallpaper Decorated</option>
         </select>
+
+        <br />
+        <br />
     </div>
     <div id="editor">
-        <br>
+        <br />
     </div>
 </body>
 </html>

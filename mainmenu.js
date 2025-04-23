@@ -35,6 +35,13 @@ const windowPresets = {
                 </center>
             </div>`
     },
+    "editor": {
+        title: "Open Editor",
+        content: `
+            playtest lol<br />
+            <input placeholder="Enter level name..." /><br />
+            <button>Edit</button>`
+    },
     "credits": {
         title: "Credits",
         content: `

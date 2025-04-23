@@ -16,7 +16,6 @@ console.log("libraries loaded")
 
 THREE.Cache.clear();
 
-
 const renderer = new THREE.WebGLRenderer();
 const audioLoader = new THREE.AudioLoader();
 renderer.setPixelRatio(1.5);
@@ -47,6 +46,10 @@ const hidingGradient = "radial-gradient(circle, transparent 0%, #000 100%)";
 let hiddenWhenHiding = [];
 
 let footstepSound;
+
+let winScreenDisplayed = false;
+
+const NOCLIP = false;
 
 // POST PROCESSING
 
@@ -102,6 +105,10 @@ function setupPlayer() {
     controls.pointerSpeed = 0.6;
     controls.minPolarAngle = Math.PI/2;
     controls.maxPolarAngle = Math.PI/2;
+
+    const pointLight = new THREE.PointLight(0xe4da96, 2.5, 10, 0.5);
+    player.add(pointLight);
+    pointLight.position.y = 2;
 
     footstepSound = new THREE.Audio(listener);
 
@@ -220,11 +227,12 @@ function updatePlayer(delta) {
 
     level.checkTriggerIntersection(player.position, PLAYER_RADIUS, player);
     player.position.add(moveX);
-    if (level.checkIntersection(player.position, PLAYER_RADIUS)) {
+    
+    if (level.checkIntersection(player.position, PLAYER_RADIUS) && !NOCLIP) {
         player.position.sub(moveX);
     }
     player.position.add(moveZ);
-    if (level.checkIntersection(player.position, PLAYER_RADIUS)) {
+    if (level.checkIntersection(player.position, PLAYER_RADIUS) && !NOCLIP) {
         player.position.sub(moveZ);
     }
 }
@@ -293,7 +301,20 @@ let healOverlayTransparency = 0;
 
 function update() {
     requestAnimationFrame(update);
-    if (!level || !level.finished || dead) {
+
+    if (level.levelCleared && !winScreenDisplayed) {
+        document.getElementById("win-screen").classList.remove("hidden");
+        controls.unlock();
+        winScreenDisplayed = true;
+        listener.setMasterVolume(0);
+        document.querySelector("canvas").remove();
+        setTimeout(() => { document.getElementById("win-1").classList.remove("hidden"); }, 100);
+        setTimeout(() => { document.getElementById("win-2").classList.remove("hidden"); }, 250);
+        setTimeout(() => { document.getElementById("win-3").classList.remove("hidden"); }, 500);
+        return;
+    }
+
+    if (!level || !level.finished || dead || level.levelCleared) {
         return;
     }
 
@@ -346,6 +367,7 @@ function update() {
             healOverlayTransparency = 1;
         }
     }
+
     previousHealth = player.userData.health;
     document.getElementById("damage-overlay").style.opacity = damageOverlayTransparency;
     document.getElementById("heal-overlay").style.opacity = healOverlayTransparency;

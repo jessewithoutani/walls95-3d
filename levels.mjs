@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as util from './util.mjs';
 import * as tiles from './tiles.mjs';
+// import { userData } from 'three/tsl';
 
 const TILE_SIZE = 4;
 const INDICATE_NODES = false;
@@ -15,7 +16,7 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
         "PURPLE_TILED_WALL": () => { return new tiles.WallBlock(util.loadTexture("default.png", 4, 4)); },
         "PURPLE_TILED_WALL_PAINTING": () => { return new tiles.WallBlock(util.loadTexture("paintingwall.png")); },
         "METAL_WALL": () => { return new tiles.WallBlock(util.loadTexture("metal.png")); },
-        "EXIT": () => { return new tiles.Exit(); },
+        "EXIT": () => { return new tiles.Exit(object); },
         "NORMAL_WALL": () => { return new tiles.NormalWallBlock(); },
         // "Y": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png", 4, 4)); },
         "WALLPAPER_WALL": () => { return new tiles.WallBlock(util.loadTexture("wallpaper.png")); },
@@ -29,10 +30,14 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
         "BOB_ENTITY": () => { return new tiles.Bob(); },
         "MARTIN_ENTITY": () => { return new tiles.Martin(player); },
     
-        "DOCUMENT_PEDESTAL": () => { return new tiles.ItemPedestal(listener, "document") },
+        "DOCUMENT_PEDESTAL": () => { 
+            totalDocuments++;
+            return new tiles.ItemPedestal(listener, "document");
+        },
         "ICECREAM_PEDESTAL": () => { return new tiles.ItemPedestal(listener, "icecream") },
 
         "PLANT_POT": () => { return new tiles.PlantPot() },
+        "WIND_TURBINE": () => { return new tiles.WindTurbine() },
     
         "SECRET_TRIGGER": () => { return new tiles.SecretTrigger(main); },
 
@@ -42,9 +47,30 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
                 util.loadTexture("entities/bog/bogdead.png"), 8.5, 1, player);
         },
         "SNIFFER_ENTITY": () => { // Sniffer
-            return new tiles.Sniffer(object, player, listener);
+            return new tiles.Sniffer(object, player, listener, scene);
         }
     }
+
+    let winConditions = {
+        "EXIT": () => { return exitTouched; },
+        "DOCUMENTS_COLLECTED": () => {
+            return player.userData.document && player.userData.document == totalDocuments;
+        },
+        "DOCUMENTS_COLLECTED_SNIFFER": () => {
+            return player.userData.document && player.userData.document == totalDocuments;
+        },
+    }
+    let winConditionObjectives = {
+        "EXIT": ["Find the exit."],
+        "DOCUMENTS_COLLECTED": ["Collect ALL documents."],
+        "DOCUMENTS_COLLECTED_SNIFFER": ["Collect the documents", "Collect them before he smels yÖu."]
+    }
+    
+    let objectivesQueue = [];
+    let curWinCondition = () => {};
+
+    let exitTouched = false;
+    let totalDocuments = 0;
 
     /*
     ".": "EMPTY",
@@ -81,6 +107,13 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
     let triggers = [];
     let requiresUpdate = [];
     let traversableNodes = new Set([]);
+
+    let objectivesDisplay = document.querySelector("#objective");
+
+    const objectiveVisibleTime = 2.75;
+    let objectiveVisibleTimer = 999999999;
+
+    let levelCleared = false;
 
     fetch(filePath).then((response) => {
         response.text().then((contents) => {
@@ -150,6 +183,10 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
             z++;
         });
 
+        curWinCondition = winConditions[contents.winCondition];
+        objectivesQueue = winConditionObjectives[contents.winCondition];
+        objectiveVisibleTimer = objectiveVisibleTime;
+
         //
         scene.fog = new THREE.FogExp2(contents.fogColor, contents.fogDensity);
         const directional = new THREE.DirectionalLight(
@@ -204,6 +241,32 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
         }
     }
     function update(delta) {
+        if (curWinCondition()) {
+            levelCleared = true;
+        }
+        if (objectivesQueue.length > 0) {
+            if (objectiveVisibleTimer <= 0) {
+                objectiveVisibleTimer = objectiveVisibleTime;
+                objectivesQueue.shift();
+            }
+            else {
+                objectiveVisibleTimer -= delta;
+            }
+        }
+        if (objectivesQueue.length > 0) {
+            objectivesDisplay.innerText = objectivesQueue[0];
+            if (objectiveVisibleTimer <= objectiveVisibleTime * 0.9) {
+                objectivesDisplay.style.display = "block";
+            }
+            else {
+                objectivesDisplay.style.display = "none";
+            }
+        }
+        else {
+            objectivesDisplay.style.display = "none";
+        }
+
+        
         for (let i = 0; i < requiresUpdate.length; i++) {
             requiresUpdate[i].update(delta);
         }
@@ -363,6 +426,13 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
         return path;
     }
 
+    function exit() {
+        exitTouched = true;
+    }
+
+    Object.defineProperty(object, "levelCleared", {
+        get() { return levelCleared; }
+    })
     Object.defineProperty(object, "finished", {
         get() { return finished; }
     });
@@ -372,7 +442,8 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
     Object.assign(object, {
         checkIntersection, checkTriggerIntersection, update, raycast,
         vector2ToTileKey, keyToVector2, checkTileTraversable, aStar,
-        tileToWorldCenter, worldToTile, tileToWorldCorner, getAdjacentTiles
+        tileToWorldCenter, worldToTile, tileToWorldCorner, getAdjacentTiles,
+        exit
     })
     return object;
 }

@@ -1,4 +1,5 @@
 {
+    "winCondition": "EXIT",
     "fogColor": 0,
     "fogDensity": 0.05,
     "skyTexturePath": "sky.png",

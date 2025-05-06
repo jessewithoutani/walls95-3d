@@ -8,12 +8,6 @@ import { Projectile } from './projectile.mjs';
 
 console.log("libraries loaded")
 
-// import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-// import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-// import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
-// import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-// import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
-
 THREE.Cache.clear();
 
 const renderer = new THREE.WebGLRenderer();
@@ -50,14 +44,6 @@ let footstepSound;
 let winScreenDisplayed = false;
 
 const NOCLIP = false;
-
-// POST PROCESSING
-
-// const composer = new EffectComposer(renderer);
-// composer.addPass(new RenderPass(scene, camera));
-// // const glitchPass = new GlitchPass(); composer.addPass(glitchPass);
-// // composer.addPass(new SMAAPass(window.innerWidth, window.innerHeight));
-// composer.addPass(new FilmPass(0.3));
 
 // GUI STUFF
 
@@ -136,7 +122,7 @@ function setupPlayer() {
     player.name = "PLAYER";
 
     hidingOverlay = document.getElementById("hiding-overlay");
-    hiddenWhenHiding = document.querySelectorAll(".viewmodel, .viewmodel-orb, #crosshair");
+    hiddenWhenHiding = document.querySelectorAll(".viewmodel, .viewmodel-orb, #crosshair, #dataviewer");
 }
 let level = undefined;
 let projectiles = [];
@@ -164,7 +150,7 @@ function setupScene() {
 var pressedKeys = {};
 window.onkeyup = function(event) { pressedKeys[event.key] = false; }
 window.onkeydown = function(event) {
-    if (dead && event.key == " ") {
+    if ((dead || level.levelCleared) && event.key == " ") {
         location.reload();
         return;
     }
@@ -308,8 +294,30 @@ function update() {
         winScreenDisplayed = true;
         listener.setMasterVolume(0);
         document.querySelector("canvas").remove();
+
+        const collectedDocuments = (player.userData.document) ? player.userData.document : 0;
+        document.getElementById("win-2").innerHTML = 
+            `<center>
+            YOUR STATS:<br />
+            </center>`;
+
         setTimeout(() => { document.getElementById("win-1").classList.remove("hidden"); }, 100);
-        setTimeout(() => { document.getElementById("win-2").classList.remove("hidden"); }, 250);
+        setTimeout(() => {
+            document.getElementById("win-2").classList.remove("hidden");
+
+            let date = new Date(0);
+            date.setSeconds(timeElapsed);
+            let timeString = date.toISOString().substring(11, 19);
+
+            setTimeout(() => {
+                document.querySelector("#win-2 center").innerHTML += 
+                    `<span class="stat-animated">
+                        &nbsp;&nbsp;- Documents collected: ${collectedDocuments}/${level.totalDocuments}
+                        <br />
+                        &nbsp;&nbsp;- Time: ${timeString}
+                    </span><br />`;
+            }, 100);
+        }, 250);
         setTimeout(() => { document.getElementById("win-3").classList.remove("hidden"); }, 500);
         return;
     }

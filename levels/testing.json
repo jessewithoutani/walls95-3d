@@ -1,7 +1,7 @@
 {
     "winCondition": "EXIT",
     "fogColor": 9342870,
-    "fogDensity": 0.007,
+    "fogDensity": 0.07,
     "skyTexturePath": "sky.png",
     "floorTexturePath": "grass.png",
     "ceilingTexturePath": "fancy_floor.png",
@@ -190,7 +190,7 @@
             "EMPTY",
             "EMPTY",
             "EMPTY",
-            "EMPTY",
+            "EXIT",
             "EMPTY",
             "EMPTY",
             "PLAYER_SPAWN",

@@ -18,12 +18,6 @@ const snifferSmokeMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("s
 const snifferWalkingMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("smoke.png") });
 
 const windTurbineMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
-/*const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
-const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
-const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
-const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
-const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
-const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });*/
 
 const audioLoader = new THREE.AudioLoader();
 
@@ -341,6 +335,10 @@ function ItemPedestal(listener, id) {
     }
 
     function awake() {
+        // const shine = new THREE.Sprite(shineMaterial);
+        // object.add(shine);
+        // shine.scale.set(3, 3, 3);
+
         item = new THREE.Sprite(new THREE.SpriteMaterial({ map: util.loadTexture(`collectibles/${id}.png`) }));
         object.add(item);
         
@@ -587,11 +585,11 @@ function RusherEnemy(level, listener, textures, deathTexture, speed, damage, pla
 
 
 function Sniffer(level, player, listener, scene) {
-    const multiplierThing = 0.8;
+    const multiplierThing = 0.65;
 
     const sniffingRadius = 32; // * 2
     const sniffingSpeed = 5.75; // * 8
-    const chargingSpeed = 6.3; // * 0.75
+    const chargingSpeed = 6; // * 0.75
     const object = new RusherEnemy(level, listener, 
         [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
         util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1e5,
@@ -610,6 +608,7 @@ function Sniffer(level, player, listener, scene) {
     let pathIndicators = [];
 
     let sniffingSound = undefined;
+    let timeElapsed = 0;
     
     let tilePlane = new THREE.Mesh(new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
         new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
@@ -635,7 +634,9 @@ function Sniffer(level, player, listener, scene) {
         scene.add(smokeParticles);
 
         const pointLight = new THREE.PointLight(0xff0000, 50, 16);
-        object.add(pointLight)
+        object.add(pointLight);
+
+        let timeElapsed = 0;
 
         sniffingSound = new THREE.PositionalAudio(listener);
         audioLoader.load("./audio/sniffing.wav", (buffer) => {
@@ -694,6 +695,8 @@ function Sniffer(level, player, listener, scene) {
         smokeParticles.position.copy(object.position);
         smokeParticles.update(delta);
 
+        timeElapsed += delta;
+
         if (snifferTraversableNodes.length == 0) {
             function getTraversableNodes(floodStart) {
                 snifferTraversableNodesSet.add(level.vector2ToTileKey(floodStart));
@@ -726,9 +729,12 @@ function Sniffer(level, player, listener, scene) {
 
     function onSightUpdate(delta) {
         let moveVector = player.position.clone().sub(object.position);
+        let strafeVector = new THREE.Vector3(-moveVector.z, 0, moveVector.x).normalize();
         moveVector.y = 0;
         moveVector = moveVector.normalize().multiplyScalar(chargingSpeed * delta * getSpeedMultiplier());
+        strafeVector = strafeVector.multiplyScalar(0.5 * Math.sin(timeElapsed) * delta * getSpeedMultiplier());
         object.move(moveVector);
+        object.move(strafeVector);
     }
 
     // If in direct line of sight, rush

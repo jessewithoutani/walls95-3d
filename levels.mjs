@@ -63,7 +63,7 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
     let winConditionObjectives = {
         "EXIT": ["Find the exit."],
         "DOCUMENTS_COLLECTED": ["Collect ALL documents."],
-        "DOCUMENTS_COLLECTED_SNIFFER": ["Collect the documents", "Collect them before he smels yÖu."]
+        "DOCUMENTS_COLLECTED_SNIFFER": ["Collect the documents", "Collect them before he smells you."]
     }
     
     let objectivesQueue = [];
@@ -71,6 +71,7 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
 
     let exitTouched = false;
     let totalDocuments = 0;
+    let timeElapsed = 0;
 
     /*
     ".": "EMPTY",
@@ -266,6 +267,7 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
             objectivesDisplay.style.display = "none";
         }
 
+        timeElapsed += delta;
         
         for (let i = 0; i < requiresUpdate.length; i++) {
             requiresUpdate[i].update(delta);
@@ -432,7 +434,13 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
 
     Object.defineProperty(object, "levelCleared", {
         get() { return levelCleared; }
-    })
+    });
+    Object.defineProperty(object, "totalDocuments", {
+        get() { return totalDocuments; }
+    });
+    Object.defineProperty(object, "timeElapsed", {
+        get() { return timeElapsed; }
+    });
     Object.defineProperty(object, "finished", {
         get() { return finished; }
     });

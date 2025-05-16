@@ -11,8 +11,9 @@ const windowPresets = {
             <hr />
             Welcome! Please select what you would like to do today:
             <br /><br />
-            <button onclick="openLevel('welcome.w95')" disabled>Tutorial [lvl 1]</button>
-            <button onclick="openLevel('testing.w95')">Recover my files [???]</button>`
+            <button onclick="openLevel('./levels/welcome.json')">Tutorial [lvl 1]</button>
+            <button onclick="openLevel('./levels/sniffer.json')">Recover my files [???]</button>
+            <button onclick="openLevel('./levels/testing.json')">test lvl lmao</button>`
     },
     "iexplore": {
         title: "Net Explorer",
@@ -34,10 +35,21 @@ const windowPresets = {
                 </center>
             </div>`
     },
+    "editor": {
+        title: "Open Editor",
+        content: `
+            playtest lol<br />
+            <input placeholder="Enter level name..." /><br />
+            <button>Edit</button>`
+    },
     "credits": {
         title: "Credits",
         content: `
-            The entire game - me<br />
+            Game Art - Jesse<br />
+            Programming - Jesse<br />
+            Sound Design - Sean<br />
+            Music - Sean<br />
+            <hr />
             Made with <a href="https://threejs.org/">Three.JS</a>`
     },
     "loading-window": {

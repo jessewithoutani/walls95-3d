@@ -102,7 +102,27 @@ hr {
     /* pointer-events: none; */
     z-index: 1000;
 }
-#secret {
+#win-screen {
+    background: #121212;
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    /* pointer-events: none; */
+    z-index: 1000;
+}
+@keyframes stat-appear {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+.stat-animated {
+    display: inline-block;
+    animation: stat-appear 0.5s ease;
+}
+#secret, #objective {
     position: fixed;
     top: 20vh;
     left: 50vw;
@@ -112,6 +132,9 @@ hr {
 
     animation: secret-effect 1.5s infinite;
     text-shadow: 5px 5px 0px rgba(0, 0, 0, 0.5);
+}
+#objective {
+    animation: none !important;
 }
 @keyframes secret-effect {
     0%, 100% {
@@ -259,6 +282,9 @@ input {
     padding: 5px 15px;
     box-sizing: border-box;
     font-family: inherit;
+}
+input[type=color] {
+    padding: 0px;
 }
 .inset-box, .loading-bar {
     border-style: inset;

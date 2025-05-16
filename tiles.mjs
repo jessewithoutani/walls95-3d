@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as util from './util.mjs';
+import * as particles from './particles.mjs';
 
 // const TRANSPARENT_TILES = true;
 const TRANSPARENT_TILES = false;
@@ -13,13 +14,12 @@ const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_h
 const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
 const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
 const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });
-/*const shineMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("shine.png") });
-const bobDormantMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_dormant.png") });
-const bobHappyMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("bob_happy.png") });
-const exitMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("exit.png") });
-const martinMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin.png") });
-const martinInactiveMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("martin_inactive.png") });*/
+const snifferSmokeMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("smoke.png"), opacity: 0.5 });
+const snifferWalkingMaterial = new THREE.SpriteMaterial({ map: util.loadTexture("smoke.png") });
 
+const windTurbineMaterial = new THREE.MeshPhongMaterial({ color: 0xffffff });
+
+const audioLoader = new THREE.AudioLoader();
 
 function inCylinderCollider(position, objectPosition, objectRadius, radius) {
     return ((position.x - objectPosition.x) ** 2 + (position.z - objectPosition.z) ** 2) <= (objectRadius + radius) ** 2;
@@ -220,10 +220,11 @@ function Martin(player) {
     // }
     return object;
 }
-function BlockDoor(texture) {
+function BlockDoor(texture, listener) {
     const object = new Tile(true, true, true); object.name = "TILE_BLKD";
     let opened = false;
     let sprite;
+    let doorSound;
 
     function colliding(position, radius = 0) {
         return sprite.position.y > -2 && inSquareCollider(position, object.position, 2, radius);
@@ -232,6 +233,7 @@ function BlockDoor(texture) {
     function inTrigger(position, radius = 0, player) {
         if (!opened && inSquareCollider(position, object.position, 2.2, radius)) {
             opened = true;
+            doorSound.play();
             return true;
         }
         return false;
@@ -240,11 +242,19 @@ function BlockDoor(texture) {
     function awake() {
         sprite = new THREE.Mesh(new THREE.BoxGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), new THREE.MeshPhongMaterial({
             map: texture}));
+        doorSound = new THREE.PositionalAudio(listener);
+        audioLoader.load("./audio/door.wav", (buffer) => {
+            doorSound.setBuffer(buffer);
+            doorSound.setRefDistance(10);
+            doorSound.setMaxDistance(289);
+            doorSound.setVolume(0.725);
+            object.add(doorSound);
+        });
         object.add(sprite);
     }
     function update(delta) {
         if (opened) {
-            sprite.position.y -= 2.1 * delta;
+            sprite.position.y -= 3.75 * delta;
             if (sprite.position.y <= -4) object.remove(sprite);
         }
     }
@@ -261,14 +271,14 @@ function BlockDoor(texture) {
     return object;
 }
 
-function Exit() {
+function Exit(level) {
     const object = new Tile(false, true, true); object.name = "ENTITY_EXIT";
     let opened = false;
     let sprite;
 
     function inTrigger(position, radius = 0, player) {
-        if (opened && inSquareCollider(position, object.position, 2.2, radius)) {
-            //
+        if (!opened && inSquareCollider(position, object.position, 2.2, radius)) {
+            level.exit();
             return true;
         }
         return false;
@@ -297,11 +307,13 @@ function Exit() {
     return object;
 }
 
-function ItemPedestal(id) {
+function ItemPedestal(listener, id) {
     const object = new Tile(true, true, true, false, true); object.name = "TILE_PDSTL";
     let item;
     let timeElapsed = 0;
     let collected = false;
+
+    let sound = undefined;
 
     function colliding(position, radius = 0) {
         return inCylinderCollider(position, object.position, 0.5, radius);
@@ -316,18 +328,29 @@ function ItemPedestal(id) {
             else {
                 player.userData[id] = 1;
             }
+            sound.play();
             return true;
         }
         return false;
     }
 
     function awake() {
+        // const shine = new THREE.Sprite(shineMaterial);
+        // object.add(shine);
+        // shine.scale.set(3, 3, 3);
+
         item = new THREE.Sprite(new THREE.SpriteMaterial({ map: util.loadTexture(`collectibles/${id}.png`) }));
         object.add(item);
         
         const pedestal = new THREE.Sprite(new THREE.SpriteMaterial({ map: util.loadTexture("pillar.png") }));
         object.add(pedestal);
         pedestal.scale.set(4, 4, 4);
+
+        sound = new THREE.Audio(listener);
+        audioLoader.load("./audio/collect.wav", (buffer) => {
+            sound.setBuffer(buffer);
+            sound.setVolume(0.5);
+        });
     }
     function update(delta) {
         timeElapsed += delta;
@@ -367,6 +390,51 @@ function PlantPot() {
     return object;
 }
 
+function WindTurbine() {
+    const object = new Tile(true, false, true); object.name = "TILE_PDSTL";
+
+    const turbines = [new THREE.Object3D(), new THREE.Object3D(), new THREE.Object3D()];
+    const initialChange = Math.random() * Math.PI / 2;
+
+    function colliding(position, radius = 0) {
+        return inCylinderCollider(position, object.position, 2, radius);
+    }
+
+    function awake() {
+        object.add(new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 4, 8), windTurbineMaterial));
+        object.add(new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.75, 70, 8), windTurbineMaterial));
+
+        const nacelleCylinder = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 1.25, 5, 6), windTurbineMaterial);
+        object.add(nacelleCylinder);
+        nacelleCylinder.position.y = 35;
+        nacelleCylinder.rotation.z = Math.PI / 2;
+
+        for (let i = 0; i < 3; i++) {
+            const cur = turbines[i];
+            const rotation = 2 * i * Math.PI / 3;
+            cur.position.y = 35;
+            cur.position.x = 1.5;
+
+            const blade = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 1, 15, 4), windTurbineMaterial);
+            cur.add(blade);
+            blade.position.y = 7.5;
+            cur.rotation.x = rotation + initialChange;
+
+            object.add(cur);
+        }
+    }
+    function update(delta) {
+        for (let i = 0; i < 3; i++) turbines[i].rotation.x += delta * 1.5;
+    }
+    
+    object.colliding = colliding;
+    object.awake = awake;
+    object.update = update;
+    awake();
+
+    return object;
+}
+
 function SecretTrigger(main) {
     const object = new Tile(false, true); object.name = "TILE_STRIGG";
     let alreadyFound = false;
@@ -384,7 +452,7 @@ function SecretTrigger(main) {
     return object;
 }
 
-function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps = 8, scale = 2, maxHealth = 2, cooldown = 0.75, detectionRadius = 30, attackRadius = 2, _radius = 1) {
+function RusherEnemy(level, listener, textures, deathTexture, speed, damage, player, fps = 8, scale = 2, maxHealth = 2, cooldown = 0.75, detectionRadius = 30, attackRadius = 2, _radius = 1) {
     const object = new Tile(true, true, true, true);
     let sprite;
     const animationStartTime = Math.random() * 10;
@@ -392,6 +460,8 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
     let dead = false;
     let health = maxHealth;
     let deathVelocity = 0;
+
+    let knockbackMultiplier = 1;
 
     const spf = 1 / fps;
     let timeSinceLastAttack = 999;
@@ -412,6 +482,7 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
         if (_player && _inTrigger && timeSinceLastAttack >= cooldown) {
             _player.userData.health -= damage;
             timeSinceLastAttack = 0;
+            knockbackMultiplier = -1.5;
         }
         return _inTrigger;
     }
@@ -463,6 +534,8 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
     function update(delta) {
         updateTime(delta);
         animate(delta);
+
+        knockbackMultiplier = util.lerp(knockbackMultiplier, 1, 0.025);
     
         if (inSight()) {
             onSightUpdate(delta);
@@ -474,7 +547,7 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
     function onSightUpdate(delta) {
         let moveVector = player.position.clone().sub(object.position);
         moveVector.y = 0;
-        moveVector = moveVector.normalize().multiplyScalar(speed * delta);
+        moveVector = moveVector.normalize().multiplyScalar(speed * delta * knockbackMultiplier);
         move(moveVector);
     }
     function outOfSightUpdate(delta) {
@@ -511,25 +584,31 @@ function RusherEnemy(level, textures, deathTexture, speed, damage, player, fps =
 }
 
 
-function Sniffer(level, player) {
-    const multiplierThing = 0.7;
+function Sniffer(level, player, listener, scene) {
+    const multiplierThing = 0.5;
 
-    const sniffingRadius = 48; // * 2
-    const sniffingSpeed = 5.25; // * 8
+    const sniffingRadius = 32; // * 2
+    const sniffingSpeed = 5.75; // * 8
     const chargingSpeed = 6; // * 0.75
-    const object = new RusherEnemy(level, 
+    const object = new RusherEnemy(level, listener, 
         [util.loadTexture("entities/sniffer/sniffer1.png"), util.loadTexture("entities/sniffer/sniffer2.png")], 
-        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1000000,
+        util.loadTexture("entities/sniffer/sniffer1.png"), chargingSpeed, 100, player, 8, 4, 1e5,
     0.1, 32, 2, 0.6);
 
     let pathUpdateTimer = 0;
     let pathUpdateCooldown = 0.5;
     let path = [];
 
+    let smokeParticles = null;
+    let walkingParticles = null;
+
     let snifferTraversableNodesSet = new Set([]);
     let snifferTraversableNodes = [];
 
     let pathIndicators = [];
+
+    let sniffingSound = undefined;
+    let timeElapsed = 0;
     
     let tilePlane = new THREE.Mesh(new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE, TILE_SIZE), 
         new THREE.MeshBasicMaterial({ color: 0x00ff00 }));
@@ -547,6 +626,28 @@ function Sniffer(level, player) {
         object.awake();
 
         if (PATH_INDICATORS) level.add(tilePlane);
+
+        smokeParticles = particles.ParticleSystem(
+            null, snifferSmokeMaterial, 1.25, 0.01, 1, 
+            new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 0), 2, particles.DeathTypes.SHRINK,
+            true, true);
+        scene.add(smokeParticles);
+
+        const pointLight = new THREE.PointLight(0xff0000, 50, 16);
+        object.add(pointLight);
+
+        let timeElapsed = 0;
+
+        sniffingSound = new THREE.PositionalAudio(listener);
+        audioLoader.load("./audio/sniffing.wav", (buffer) => {
+            sniffingSound.setBuffer(buffer);
+            sniffingSound.setRefDistance(15);
+            sniffingSound.setMaxDistance(sniffingRadius * 0.6);
+            sniffingSound.setVolume(0.2);
+            sniffingSound.setLoop(true);
+            sniffingSound.play();
+            object.add(sniffingSound);
+        });
     }
 
     function updatePathIndicators() {
@@ -591,6 +692,11 @@ function Sniffer(level, player) {
         // console.log(getSpeedMultiplier())
         updateNodeIndicator();
 
+        smokeParticles.position.copy(object.position);
+        smokeParticles.update(delta);
+
+        timeElapsed += delta;
+
         if (snifferTraversableNodes.length == 0) {
             function getTraversableNodes(floodStart) {
                 snifferTraversableNodesSet.add(level.vector2ToTileKey(floodStart));
@@ -618,14 +724,17 @@ function Sniffer(level, player) {
         }
 
         document.getElementById("sniffer-overlay").style.opacity = 
-            Math.max(0.5 - (0.5 / (sniffingRadius / 2)) * player.position.distanceTo(object.position), 0);
+            Math.max(0.5 - (0.5 / (sniffingRadius * 0.75)) * player.position.distanceTo(object.position), 0);
     }
 
     function onSightUpdate(delta) {
         let moveVector = player.position.clone().sub(object.position);
+        let strafeVector = new THREE.Vector3(-moveVector.z, 0, moveVector.x).normalize();
         moveVector.y = 0;
         moveVector = moveVector.normalize().multiplyScalar(chargingSpeed * delta * getSpeedMultiplier());
+        strafeVector = strafeVector.multiplyScalar(0.5 * Math.sin(timeElapsed) * delta * getSpeedMultiplier());
         object.move(moveVector);
+        object.move(strafeVector);
     }
 
     // If in direct line of sight, rush
@@ -694,6 +803,6 @@ function Sniffer(level, player) {
 }
 
 export {
-    WallBlock, RandomizedWallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot, 
+    WallBlock, RandomizedWallBlock, Bob, ItemPedestal, NormalWallBlock, BlockDoor, SecretTrigger, Exit, PlantPot, WindTurbine, 
     RusherEnemy, Sniffer, Martin
 }

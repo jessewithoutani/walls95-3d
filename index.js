@@ -8,16 +8,10 @@ import { Projectile } from './projectile.mjs';
 
 console.log("libraries loaded")
 
-// import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
-// import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-// import { GlitchPass } from 'three/addons/postprocessing/GlitchPass.js';
-// import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-// import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
-
 THREE.Cache.clear();
 
-
 const renderer = new THREE.WebGLRenderer();
+const audioLoader = new THREE.AudioLoader();
 renderer.setPixelRatio(1.5);
 renderer.setSize(window.innerWidth - 120, window.innerHeight - 120);
 // renderer.sortObjects = true;
@@ -25,9 +19,10 @@ document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 // sky: 0x86bde3
-scene.fog = new THREE.FogExp2(0x000000, 0.05);
+scene.fog = new THREE.FogExp2(0xffaaaa, 0.1);
 scene.background = new THREE.Color(0x86bde3);
 let camera = undefined;
+let listener = undefined;
 
 let player = undefined;
 let playerVelocity = 0;
@@ -44,13 +39,11 @@ let hidingOverlay;
 const hidingGradient = "radial-gradient(circle, transparent 0%, #000 100%)";
 let hiddenWhenHiding = [];
 
-// POST PROCESSING
+let footstepSound;
 
-// const composer = new EffectComposer(renderer);
-// composer.addPass(new RenderPass(scene, camera));
-// // const glitchPass = new GlitchPass(); composer.addPass(glitchPass);
-// // composer.addPass(new SMAAPass(window.innerWidth, window.innerHeight));
-// composer.addPass(new FilmPass(0.3));
+let winScreenDisplayed = false;
+
+const NOCLIP = false;
 
 // GUI STUFF
 
@@ -80,6 +73,8 @@ function setupCamera() {
         (window.innerWidth - 120) / (window.innerHeight - 120), 
         0.1, 7500);
     camera.rotation.order = 'YXZ';
+    listener = new THREE.AudioListener();
+    camera.add(listener);
 }
 let controls = null;
 function setupPlayer() {
@@ -96,6 +91,19 @@ function setupPlayer() {
     controls.pointerSpeed = 0.6;
     controls.minPolarAngle = Math.PI/2;
     controls.maxPolarAngle = Math.PI/2;
+
+    const pointLight = new THREE.PointLight(0xe4da96, 2.5, 10, 0.5);
+    player.add(pointLight);
+    pointLight.position.y = 2;
+
+    footstepSound = new THREE.Audio(listener);
+
+    audioLoader.load("./audio/footsteps.wav", (buffer) => {
+        footstepSound.setBuffer(buffer);
+        footstepSound.setVolume(0);
+        footstepSound.setLoop(true);
+        footstepSound.play();
+    });
     
     controls.addEventListener("lock", () => {
         // menu.style.display = "none";
@@ -114,46 +122,35 @@ function setupPlayer() {
     player.name = "PLAYER";
 
     hidingOverlay = document.getElementById("hiding-overlay");
-    hiddenWhenHiding = document.querySelectorAll(".viewmodel, .viewmodel-orb, #crosshair");
+    hiddenWhenHiding = document.querySelectorAll(".viewmodel, .viewmodel-orb, #crosshair, #dataviewer");
 }
 let level = undefined;
 let projectiles = [];
 let attackPressed = false;
 
 function setupScene() {
-    const directional = new THREE.DirectionalLight(0xfff2b3, 2.5);
-    directional.position.set(0.5, 1, 0.1);
-    scene.add(directional);
-    const ambient = new THREE.AmbientLight(0x777ca1, 2);
-    scene.add(ambient);
-
-    // ======================================
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
-        map: util.loadTexture("fancy_floor.png", 500, 500)
-    })); ground.name = "GROUND";
-    scene.add(ground);
-    ground.rotation.x = -Math.PI / 2;
-
-    const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(500, 500), new THREE.MeshPhongMaterial({
-        map: util.loadTexture("fancy_floor.png", 500, 500)
-    })); ceiling.name = "CEILING";
-    scene.add(ceiling);
-    ceiling.position.y = 4;
-    ceiling.rotation.x = Math.PI / 2;
-
     // ======================================
     console.log(main);
     const urlParams = new URLSearchParams(window.location.search);
-    const filePath = atob(urlParams.get("filePath"));
+
+    let filePath = "";
+
+    if (urlParams.has("filePath")) {
+        filePath = atob(urlParams.get("filePath"));
+    }
+    else {
+        const contents = localStorage.getItem(atob(urlParams.get("saveName")));
+        filePath = `data:text/plain;base64,${btoa(contents)}`;
+    }
     // alert(filePath)
-    level = new Level(main, player, filePath);
+    level = new Level(main, scene, player, listener, filePath);
     level.name = "LEVEL";
     scene.add(level);
 }
 var pressedKeys = {};
 window.onkeyup = function(event) { pressedKeys[event.key] = false; }
 window.onkeydown = function(event) {
-    if (dead && event.key == " ") {
+    if ((dead || level.levelCleared) && event.key == " ") {
         location.reload();
         return;
     }
@@ -167,6 +164,7 @@ window.onkeydown = function(event) {
 }
 window.onmousedown = function(event) {
     attackPressed = true;
+    listener.context.resume();
 }
 
 // start() update runs once before the first frame
@@ -207,17 +205,20 @@ function updatePlayer(delta) {
     // player.position.add(moveVector);
     camera.position.y = 2 + (Math.sin(timeElapsed * 12.5) * Math.max(Math.abs(walkMovement), Math.abs(strafeMovement)) * 0.07);
 
+    footstepSound.setVolume(1.0 * Math.max(Math.abs(walkMovement), Math.abs(strafeMovement)));
+
     // console.log(level.checkIntersection(player.position))
     const moveX = moveVector.clone(); moveX.z = 0;
     const moveZ = moveVector.clone(); moveZ.x = 0;
 
     level.checkTriggerIntersection(player.position, PLAYER_RADIUS, player);
     player.position.add(moveX);
-    if (level.checkIntersection(player.position, PLAYER_RADIUS)) {
+    
+    if (level.checkIntersection(player.position, PLAYER_RADIUS) && !NOCLIP) {
         player.position.sub(moveX);
     }
     player.position.add(moveZ);
-    if (level.checkIntersection(player.position, PLAYER_RADIUS)) {
+    if (level.checkIntersection(player.position, PLAYER_RADIUS) && !NOCLIP) {
         player.position.sub(moveZ);
     }
 }
@@ -286,7 +287,42 @@ let healOverlayTransparency = 0;
 
 function update() {
     requestAnimationFrame(update);
-    if (!level || !level.finished || dead) {
+
+    if (level.levelCleared && !winScreenDisplayed) {
+        document.getElementById("win-screen").classList.remove("hidden");
+        controls.unlock();
+        winScreenDisplayed = true;
+        listener.setMasterVolume(0);
+        document.querySelector("canvas").remove();
+
+        const collectedDocuments = (player.userData.document) ? player.userData.document : 0;
+        document.getElementById("win-2").innerHTML = 
+            `<center>
+            YOUR STATS:<br />
+            </center>`;
+
+        setTimeout(() => { document.getElementById("win-1").classList.remove("hidden"); }, 100);
+        setTimeout(() => {
+            document.getElementById("win-2").classList.remove("hidden");
+
+            let date = new Date(0);
+            date.setSeconds(timeElapsed);
+            let timeString = date.toISOString().substring(11, 19);
+
+            setTimeout(() => {
+                document.querySelector("#win-2 center").innerHTML += 
+                    `<span class="stat-animated">
+                        &nbsp;&nbsp;- Documents collected: ${collectedDocuments}/${level.totalDocuments}
+                        <br />
+                        &nbsp;&nbsp;- Time: ${timeString}
+                    </span><br />`;
+            }, 100);
+        }, 250);
+        setTimeout(() => { document.getElementById("win-3").classList.remove("hidden"); }, 500);
+        return;
+    }
+
+    if (!level || !level.finished || dead || level.levelCleared) {
         return;
     }
 
@@ -324,6 +360,7 @@ function update() {
         document.getElementById("death-screen").classList.remove("hidden");
         dead = true;
         controls.unlock();
+        listener.setMasterVolume(0);
         document.querySelector("canvas").remove();
         setTimeout(() => { document.getElementById("bsod-1").classList.remove("hidden"); }, 100);
         setTimeout(() => { document.getElementById("bsod-2").classList.remove("hidden"); }, 250);
@@ -338,6 +375,7 @@ function update() {
             healOverlayTransparency = 1;
         }
     }
+
     previousHealth = player.userData.health;
     document.getElementById("damage-overlay").style.opacity = damageOverlayTransparency;
     document.getElementById("heal-overlay").style.opacity = healOverlayTransparency;

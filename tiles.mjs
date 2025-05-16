@@ -585,7 +585,7 @@ function RusherEnemy(level, listener, textures, deathTexture, speed, damage, pla
 
 
 function Sniffer(level, player, listener, scene) {
-    const multiplierThing = 0.65;
+    const multiplierThing = 0.5;
 
     const sniffingRadius = 32; // * 2
     const sniffingSpeed = 5.75; // * 8

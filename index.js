@@ -36,6 +36,7 @@ let timeSinceLastShot = 999;
 let theta = 0;
 
 let hidingOverlay;
+let previouslyHiding = false;
 const hidingGradient = "radial-gradient(circle, transparent 0%, #000 100%)";
 let hiddenWhenHiding = [];
 
@@ -44,6 +45,12 @@ let footstepSound;
 let winScreenDisplayed = false;
 
 const NOCLIP = false;
+
+// SOUNDS
+
+const death = new Audio("./audio/death.wav");
+const shoot = new Audio("./audio/shoot.wav");
+const gulp = new Audio("./audio/gulp.wav");
 
 // GUI STUFF
 
@@ -232,6 +239,8 @@ function updateAttacking(delta) {
         scene.add(newProjectile);
         timeSinceLastShot = 0;
         attackPressed = false;
+        shoot.currentTime = 0; // reset sound
+        shoot.play();
     }
     else {
         timeSinceLastShot += delta;
@@ -248,6 +257,10 @@ function updateHiding(delta) {
         }
     });
     if (player.userData.hiding) {
+        if (!previouslyHiding) {
+            gulp.play();
+        }
+
         hidingOverlay.classList.remove("hidden");
         if (player.userData.martinDamageTimer < 0.5) {
             hidingOverlay.classList.remove("hiding-1");
@@ -265,6 +278,8 @@ function updateHiding(delta) {
     else {
         hidingOverlay.classList.add("hidden");
     }
+
+    previouslyHiding = player.userData.hiding;
 }
 
 const clock = new THREE.Clock();
@@ -358,6 +373,7 @@ function update() {
     healOverlayTransparency *= 0.8;
     if (player.userData.health <= 0) {
         document.getElementById("death-screen").classList.remove("hidden");
+        death.play();
         dead = true;
         controls.unlock();
         listener.setMasterVolume(0);

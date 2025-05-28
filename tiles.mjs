@@ -146,6 +146,7 @@ function Bob() {
 }
 function Martin(player) {
     const object = new Tile(true, true, true, false, false); object.name = "ENTITY_MRTN";
+    const bite = new Audio("./audio/bite.wav");
 
     // let damageTimer = 0;
     const damageCooldown = Math.PI * 1.75;
@@ -195,6 +196,7 @@ function Martin(player) {
 
             if (player.userData.martinDamageTimer <= 0) {
                 // console.log("aergyuerwuguygergugyeiuog")
+                bite.play();
                 player.userData.health -= 1;
                 player.userData.martinDamageTimer = damageCooldown;
             }
@@ -307,13 +309,12 @@ function Exit(level) {
     return object;
 }
 
-function ItemPedestal(listener, id) {
+function ItemPedestal(id) {
     const object = new Tile(true, true, true, false, true); object.name = "TILE_PDSTL";
     let item;
     let timeElapsed = 0;
-    let collected = false;
 
-    let sound = undefined;
+    let collected = false;
 
     function colliding(position, radius = 0) {
         return inCylinderCollider(position, object.position, 0.5, radius);
@@ -328,7 +329,8 @@ function ItemPedestal(listener, id) {
             else {
                 player.userData[id] = 1;
             }
-            sound.play();
+            const ding = new Audio("./audio/collect.wav");
+            ding.play();
             return true;
         }
         return false;
@@ -345,12 +347,6 @@ function ItemPedestal(listener, id) {
         const pedestal = new THREE.Sprite(new THREE.SpriteMaterial({ map: util.loadTexture("pillar.png") }));
         object.add(pedestal);
         pedestal.scale.set(4, 4, 4);
-
-        sound = new THREE.Audio(listener);
-        audioLoader.load("./audio/collect.wav", (buffer) => {
-            sound.setBuffer(buffer);
-            sound.setVolume(0.5);
-        });
     }
     function update(delta) {
         timeElapsed += delta;
@@ -639,11 +635,11 @@ function Sniffer(level, player, listener, scene) {
         let timeElapsed = 0;
 
         sniffingSound = new THREE.PositionalAudio(listener);
-        audioLoader.load("./audio/sniffing.wav", (buffer) => {
+        audioLoader.load("./audio/loud_static.wav", (buffer) => {
             sniffingSound.setBuffer(buffer);
-            sniffingSound.setRefDistance(15);
-            sniffingSound.setMaxDistance(sniffingRadius * 0.6);
-            sniffingSound.setVolume(0.2);
+            sniffingSound.setRefDistance(5);
+            sniffingSound.setMaxDistance(sniffingRadius * 0.35);
+            sniffingSound.setVolume(0.125);
             sniffingSound.setLoop(true);
             sniffingSound.play();
             object.add(sniffingSound);

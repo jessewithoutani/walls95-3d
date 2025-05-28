@@ -641,9 +641,9 @@ function Sniffer(level, player, listener, scene) {
         sniffingSound = new THREE.PositionalAudio(listener);
         audioLoader.load("./audio/sniffing.wav", (buffer) => {
             sniffingSound.setBuffer(buffer);
-            sniffingSound.setRefDistance(15);
+            sniffingSound.setRefDistance(5);
             sniffingSound.setMaxDistance(sniffingRadius * 0.6);
-            sniffingSound.setVolume(0.2);
+            sniffingSound.setVolume(0.125);
             sniffingSound.setLoop(true);
             sniffingSound.play();
             object.add(sniffingSound);

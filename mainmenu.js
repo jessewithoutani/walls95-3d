@@ -11,7 +11,7 @@ const windowPresets = {
             <hr />
             Welcome! Please select what you would like to do today:
             <br /><br />
-            <button onclick="openLevel('./levels/welcome.json')">Tutorial [lvl 1]</button>
+            <button onclick="openLevel('./levels/welcome.json')" disabled>Tutorial [lvl 1]</button>
             <button onclick="openLevel('./levels/sniffer.json')">Recover my files [???]</button>
             <button onclick="openLevel('./levels/testing.json')">test lvl lmao</button>`
     },

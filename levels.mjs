@@ -32,9 +32,9 @@ export function Level(main, scene, player, listener, filePath = "./levels/welcom
     
         "DOCUMENT_PEDESTAL": () => { 
             totalDocuments++;
-            return new tiles.ItemPedestal(listener, "document");
+            return new tiles.ItemPedestal("document");
         },
-        "ICECREAM_PEDESTAL": () => { return new tiles.ItemPedestal(listener, "icecream") },
+        "ICECREAM_PEDESTAL": () => { return new tiles.ItemPedestal("icecream") },
 
         "PLANT_POT": () => { return new tiles.PlantPot() },
         "WIND_TURBINE": () => { return new tiles.WindTurbine() },

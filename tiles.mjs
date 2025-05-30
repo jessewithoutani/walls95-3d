@@ -472,7 +472,7 @@ function RusherEnemy(level, listener, textures, deathTexture, speed, damage, pla
     }
 
     function inTrigger(position, radius = 0, _player) {
-        if (!canAttack()) return;
+        if (!object.canAttack()) return;
         
         const _inTrigger = !dead && inCylinderCollider(position, object.position, attackRadius, radius);
         if (_player && _inTrigger && timeSinceLastAttack >= cooldown) {
@@ -528,15 +528,15 @@ function RusherEnemy(level, listener, textures, deathTexture, speed, damage, pla
     }
 
     function update(delta) {
-        updateTime(delta);
+        object.updateTime(delta);
         animate(delta);
 
         knockbackMultiplier = util.lerp(knockbackMultiplier, 1, 0.025);
     
-        if (inSight()) {
-            onSightUpdate(delta);
+        if (object.inSight()) {
+            object.onSightUpdate(delta);
         } else {
-            outOfSightUpdate(delta);
+            object.outOfSightUpdate(delta);
         }
     }
 
@@ -713,7 +713,7 @@ function Sniffer(level, player, listener, scene) {
         object.updateTime(delta);
         object.animate(delta);
     
-        if (object.inSight() && !player.userData.hiding) {
+        if (object.inSight()) {
             onSightUpdate(delta);
         } else {
             outOfSightUpdate(delta);
